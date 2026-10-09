@@ -8,6 +8,12 @@ class ExecutionRepository {
   ExecutionRepository(this._api);
   final ApiClient _api;
 
+  /// Raw reachability probe for the Live badge. Throws on failure
+  /// (unlike [languages], which degrades to a static fallback).
+  Future<void> reachable() async {
+    await _api.get<dynamic>('/exec/languages');
+  }
+
   Future<List<String>> languages() async {
     try {
       final json = await _api.get<Map<String, dynamic>>(
@@ -27,7 +33,7 @@ class ExecutionRepository {
         'java',
         'c',
         'cpp',
-        'go'
+        'go',
       ];
     }
   }
@@ -54,7 +60,11 @@ class ExecutionRepository {
       return ExecutionResult.fromJson(json);
     } catch (_) {
       return _interactive(
-          language: language, code: code, filename: filename, stdin: stdin);
+        language: language,
+        code: code,
+        filename: filename,
+        stdin: stdin,
+      );
     }
   }
 
@@ -80,7 +90,9 @@ class ExecutionRepository {
     if (stdin.isNotEmpty) {
       for (final line in stdin.split('\n')) {
         await _api.post<dynamic>(
-            '/exec/input', body: {'session_id': sid, 'line': line});
+          '/exec/input',
+          body: {'session_id': sid, 'line': line},
+        );
       }
     }
     var so = 0, se = 0;
@@ -112,10 +124,11 @@ class ExecutionRepository {
     );
   }
 
-  Future<void> sendInput(String sessionId, String line) =>
-      _api.post<dynamic>(
-          '/exec/input', body: {'session_id': sessionId, 'line': line});
+  Future<void> sendInput(String sessionId, String line) => _api.post<dynamic>(
+    '/exec/input',
+    body: {'session_id': sessionId, 'line': line},
+  );
 
-  Future<void> kill(String sessionId) => _api
-      .post<dynamic>('/exec/kill', body: {'session_id': sessionId});
+  Future<void> kill(String sessionId) =>
+      _api.post<dynamic>('/exec/kill', body: {'session_id': sessionId});
 }

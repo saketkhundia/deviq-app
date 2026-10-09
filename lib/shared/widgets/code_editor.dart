@@ -4,6 +4,24 @@ import 'package:flutter_highlight/themes/atom-one-dark.dart' as dark_hl;
 import 'package:flutter_highlight/themes/github.dart' as light_hl;
 import 'package:google_fonts/google_fonts.dart';
 
+import '../../core/theme/deviq_colors.dart';
+
+/// Highlight themes with a transparent root background. HighlightView
+/// paints `theme['root'].backgroundColor` behind the code — leaving the
+/// package default would veil the text with a lighter wash over the
+/// editor surface. Computed once, shared by editor and code blocks.
+Map<String, TextStyle> _transparentRoot(Map<String, TextStyle> source) {
+  final m = Map<String, TextStyle>.of(source);
+  final root = m['root'];
+  m['root'] = (root ?? const TextStyle()).copyWith(
+    backgroundColor: Colors.transparent,
+  );
+  return m;
+}
+
+final _darkHlTheme = _transparentRoot(dark_hl.atomOneDarkTheme);
+final _lightHlTheme = _transparentRoot(light_hl.githubTheme);
+
 /// Mobile code editor: transparent [TextField] layered over a highlighted
 /// render with a synchronized line-number gutter. Editing stays native
 /// (cursor, selection, copy/paste, undo/redo via platform), while the
@@ -17,6 +35,7 @@ class CodeEditor extends StatefulWidget {
     this.maxLines = 22,
     this.readOnly = false,
     this.hint = '// Start typing…',
+    this.showBorder = true,
   });
 
   final TextEditingController controller;
@@ -25,6 +44,10 @@ class CodeEditor extends StatefulWidget {
   final int maxLines;
   final bool readOnly;
   final String hint;
+
+  /// Set false when hosted inside an outer frame (e.g. playground editor
+  /// chrome with its own header) to avoid double borders.
+  final bool showBorder;
 
   @override
   State<CodeEditor> createState() => _CodeEditorState();
@@ -51,8 +74,9 @@ class _CodeEditorState extends State<CodeEditor> {
 
   void _sync() {
     if (_gutterScroll.hasClients && _scroll.hasClients) {
-      _gutterScroll.jumpTo(_scroll.offset.clamp(
-          0, _gutterScroll.position.maxScrollExtent));
+      _gutterScroll.jumpTo(
+        _scroll.offset.clamp(0, _gutterScroll.position.maxScrollExtent),
+      );
     }
   }
 
@@ -64,15 +88,13 @@ class _CodeEditorState extends State<CodeEditor> {
     super.dispose();
   }
 
-  int get _lines =>
-      _text.isEmpty ? 1 : '\n'.allMatches(_text).length + 1;
+  int get _lines => _text.isEmpty ? 1 : '\n'.allMatches(_text).length + 1;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final dark = theme.brightness == Brightness.dark;
-    final mono =
-        GoogleFonts.jetBrainsMono(fontSize: 12.5, height: 1.55);
+    final mono = GoogleFonts.jetBrainsMono(fontSize: 12.5, height: 1.55);
     final lineH = 12.5 * 1.55;
     final minH = lineH * widget.minLines + 24;
     final maxH = lineH * widget.maxLines + 24;
@@ -81,7 +103,9 @@ class _CodeEditorState extends State<CodeEditor> {
       decoration: BoxDecoration(
         color: dark ? const Color(0xFF0D0D0D) : const Color(0xFFFAFAFA),
         borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: theme.dividerColor),
+        border: widget.showBorder
+            ? Border.all(color: theme.dividerColor)
+            : null,
       ),
       child: ClipRRect(
         borderRadius: BorderRadius.circular(10),
@@ -93,8 +117,7 @@ class _CodeEditorState extends State<CodeEditor> {
               width: 44,
               padding: const EdgeInsets.only(top: 12, bottom: 12),
               decoration: BoxDecoration(
-                border: Border(
-                    right: BorderSide(color: theme.dividerColor)),
+                border: Border(right: BorderSide(color: theme.dividerColor)),
               ),
               child: SingleChildScrollView(
                 controller: _gutterScroll,
@@ -104,13 +127,16 @@ class _CodeEditorState extends State<CodeEditor> {
                   children: [
                     for (var i = 1; i <= _lines.clamp(1, 9999); i++)
                       Padding(
-                        padding:
-                            const EdgeInsets.only(right: 10, left: 6),
-                        child: Text('$i',
-                            style: mono.copyWith(
-                                color: theme.colorScheme.secondary
-                                    .withValues(alpha: 0.6),
-                                fontSize: 12)),
+                        padding: const EdgeInsets.only(right: 10, left: 6),
+                        child: Text(
+                          '$i',
+                          style: mono.copyWith(
+                            color: theme.colorScheme.secondary.withValues(
+                              alpha: 0.6,
+                            ),
+                            fontSize: 12,
+                          ),
+                        ),
                       ),
                   ],
                 ),
@@ -119,8 +145,7 @@ class _CodeEditorState extends State<CodeEditor> {
             // Code surface
             Expanded(
               child: ConstrainedBox(
-                constraints:
-                    BoxConstraints(minHeight: minH, maxHeight: maxH),
+                constraints: BoxConstraints(minHeight: minH, maxHeight: maxH),
                 child: SingleChildScrollView(
                   controller: _scroll,
                   child: Stack(
@@ -128,22 +153,21 @@ class _CodeEditorState extends State<CodeEditor> {
                       // Highlight backdrop (ignore pointer so taps hit field)
                       IgnorePointer(
                         child: Padding(
-                          padding: const EdgeInsets.fromLTRB(
-                              12, 12, 12, 12),
+                          padding: const EdgeInsets.fromLTRB(12, 12, 12, 12),
                           child: HighlightView(
                             _text.isEmpty ? ' ' : _text,
                             language: widget.language,
-                            theme: dark ? dark_hl.atomOneDarkTheme : light_hl.githubTheme,
+                            theme: dark ? _darkHlTheme : _lightHlTheme,
                             textStyle: mono.copyWith(
-                                color: theme.colorScheme.onSurface),
+                              color: theme.colorScheme.onSurface,
+                            ),
                             padding: EdgeInsets.zero,
                           ),
                         ),
                       ),
                       // Editable layer
                       Padding(
-                        padding: const EdgeInsets.fromLTRB(
-                            12, 12, 12, 12),
+                        padding: const EdgeInsets.fromLTRB(12, 12, 12, 12),
                         child: TextField(
                           controller: widget.controller,
                           readOnly: widget.readOnly,
@@ -154,19 +178,17 @@ class _CodeEditorState extends State<CodeEditor> {
                           enableSuggestions: false,
                           smartDashesType: SmartDashesType.disabled,
                           smartQuotesType: SmartQuotesType.disabled,
-                          style: mono.copyWith(
-                              color: Colors.transparent),
-                          cursorColor: dark
-                              ? Colors.white
-                              : Colors.black,
+                          style: mono.copyWith(color: Colors.transparent),
+                          cursorColor: dark ? Colors.white : Colors.black,
                           // Transparent text + visible selection/cursor.
-                          selectionControls:
-                              MaterialTextSelectionControls(),
+                          selectionControls: MaterialTextSelectionControls(),
                           decoration: InputDecoration(
                             hintText: widget.hint,
                             hintStyle: mono.copyWith(
-                                color: theme.colorScheme.secondary
-                                    .withValues(alpha: 0.7)),
+                              color: theme.colorScheme.secondary.withValues(
+                                alpha: 0.7,
+                              ),
+                            ),
                             border: InputBorder.none,
                             enabledBorder: InputBorder.none,
                             focusedBorder: InputBorder.none,
@@ -212,11 +234,12 @@ class CodeBlock extends StatelessWidget {
         child: HighlightView(
           code,
           language: language,
-          theme: dark ? dark_hl.atomOneDarkTheme : light_hl.githubTheme,
+          theme: dark ? _darkHlTheme : _lightHlTheme,
           textStyle: GoogleFonts.jetBrainsMono(
-              fontSize: 12.5,
-              height: 1.55,
-              color: theme.colorScheme.onSurface),
+            fontSize: 12.5,
+            height: 1.55,
+            color: theme.colorScheme.onSurface,
+          ),
           padding: EdgeInsets.zero,
         ),
       ),
@@ -233,6 +256,9 @@ class TerminalView extends StatelessWidget {
     this.running = false,
     this.exitCode,
     this.elapsedMs,
+    this.command,
+    this.idleHint = '\$ — terminal ready. Press Run to compile & execute.',
+    this.showBorder = true,
   });
 
   final String output;
@@ -241,14 +267,24 @@ class TerminalView extends StatelessWidget {
   final int? exitCode;
   final int? elapsedMs;
 
+  /// Echoed run command (e.g. "$ node main.js"), shown above output.
+  final String? command;
+
+  /// Placeholder when nothing has run yet.
+  final String idleHint;
+
+  /// Set false when hosted inside an outer frame to avoid double borders.
+  final bool showBorder;
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final dark = theme.brightness == Brightness.dark;
     final mono = GoogleFonts.jetBrainsMono(
-        fontSize: 12.5,
-        height: 1.5,
-        color: dark ? const Color(0xFFE5E5E5) : const Color(0xFF1A1A1A));
+      fontSize: 12.5,
+      height: 1.5,
+      color: dark ? const Color(0xFFE5E5E5) : const Color(0xFF1A1A1A),
+    );
     return Container(
       width: double.infinity,
       constraints: const BoxConstraints(minHeight: 140, maxHeight: 320),
@@ -256,45 +292,63 @@ class TerminalView extends StatelessWidget {
       decoration: BoxDecoration(
         color: dark ? const Color(0xFF0D0D0D) : const Color(0xFF111111),
         borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: theme.dividerColor),
+        border: showBorder ? Border.all(color: theme.dividerColor) : null,
       ),
       child: SingleChildScrollView(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             if (running)
-              Row(children: [
-                SizedBox(
+              Row(
+                children: [
+                  SizedBox(
                     width: 12,
                     height: 12,
                     child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        color: mono.color)),
-                const SizedBox(width: 8),
-                Text('Running…',
-                    style: mono.copyWith(fontSize: 12)),
-              ])
+                      strokeWidth: 2,
+                      color: mono.color,
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Text('Running…', style: mono.copyWith(fontSize: 12)),
+                ],
+              )
             else if (output.isEmpty && error.isEmpty)
-              Text('\$ awaiting output',
-                  style: mono.copyWith(
-                      color: mono.color?.withValues(alpha: 0.5),
-                      fontSize: 12))
+              Text(
+                idleHint,
+                style: mono.copyWith(
+                  color: mono.color?.withValues(alpha: 0.5),
+                  fontSize: 12,
+                ),
+              )
             else ...[
-              if (output.isNotEmpty)
-                SelectableText(output, style: mono),
-              if (error.isNotEmpty)
-                SelectableText(error,
+              if (command != null && command!.isNotEmpty)
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 4),
+                  child: Text(
+                    '\$ $command',
                     style: mono.copyWith(
-                        color: const Color(0xFFFB7185))),
+                      color: DevIQColors.success,
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+              if (output.isNotEmpty) SelectableText(output, style: mono),
+              if (error.isNotEmpty)
+                SelectableText(
+                  error,
+                  style: mono.copyWith(color: const Color(0xFFFB7185)),
+                ),
               if (exitCode != null || elapsedMs != null)
                 Padding(
                   padding: const EdgeInsets.only(top: 8),
                   child: Text(
-                    'exit=$exitCode · ${elapsedMs ?? 0}ms',
+                    '● exit ${exitCode ?? '?'} · ${elapsedMs ?? 0} ms',
                     style: mono.copyWith(
-                        fontSize: 11,
-                        color: mono.color
-                            ?.withValues(alpha: 0.55)),
+                      fontSize: 11,
+                      color: mono.color?.withValues(alpha: 0.55),
+                    ),
                   ),
                 ),
             ],

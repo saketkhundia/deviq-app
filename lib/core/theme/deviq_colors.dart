@@ -85,19 +85,19 @@ class DevIQSpacing {
 class DevIQShadows {
   const DevIQShadows._();
   static List<BoxShadow> card(bool dark) => [
-        BoxShadow(
-          color: dark
-              ? const Color.fromRGBO(0, 0, 0, 0.4)
-              : const Color.fromRGBO(0, 0, 0, 0.08),
-          blurRadius: 3,
-          offset: const Offset(0, 1),
-        ),
-        BoxShadow(
-          color: dark
-              ? const Color.fromRGBO(0, 0, 0, 0.5)
-              : const Color.fromRGBO(0, 0, 0, 0.06),
-          blurRadius: 12,
-          offset: const Offset(0, 4),
-        ),
-      ];
+    BoxShadow(
+      color: dark
+          ? const Color.fromRGBO(0, 0, 0, 0.4)
+          : const Color.fromRGBO(0, 0, 0, 0.08),
+      blurRadius: 3,
+      offset: const Offset(0, 1),
+    ),
+    BoxShadow(
+      color: dark
+          ? const Color.fromRGBO(0, 0, 0, 0.5)
+          : const Color.fromRGBO(0, 0, 0, 0.06),
+      blurRadius: 12,
+      offset: const Offset(0, 4),
+    ),
+  ];
 }

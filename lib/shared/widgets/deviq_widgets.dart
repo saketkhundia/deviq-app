@@ -1,5 +1,6 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../core/theme/deviq_colors.dart';
 
@@ -77,11 +78,7 @@ class DevIQCard extends StatelessWidget {
       elevation: 0,
       child: onTap == null
           ? content
-          : InkWell(
-              onTap: onTap,
-              borderRadius: radius,
-              child: content,
-            ),
+          : InkWell(onTap: onTap, borderRadius: radius, child: content),
     );
     return Container(
       decoration: BoxDecoration(
@@ -293,8 +290,8 @@ class DevIQPill extends StatelessWidget {
                   color: selected
                       ? theme.colorScheme.onPrimary
                       : (dark
-                          ? DevIQColors.darkTextSecondary
-                          : DevIQColors.lightTextSecondary),
+                            ? DevIQColors.darkTextSecondary
+                            : DevIQColors.lightTextSecondary),
                 ),
               ),
             ),
@@ -741,4 +738,75 @@ class _SkeletonCardState extends State<SkeletonCard>
       ),
     ),
   );
+}
+
+/// Sign-in gate for features that require a backend session (all AI
+/// endpoints). Shown instead of a raw 401 so signed-out users get a
+/// clear path forward rather than "Missing or invalid authorization".
+class SignInRequired extends StatelessWidget {
+  const SignInRequired({super.key, this.feature = 'AI features'});
+
+  final String feature;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return DevIQCard(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                width: 36,
+                height: 36,
+                decoration: BoxDecoration(
+                  color: DevIQColors.ai.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(
+                    color: DevIQColors.ai.withValues(alpha: 0.3),
+                  ),
+                ),
+                child: const Icon(
+                  Icons.auto_awesome_outlined,
+                  size: 18,
+                  color: DevIQColors.ai,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  'Sign in required',
+                  style: theme.textTheme.titleSmall?.copyWith(
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+          Text(
+            '$feature need a signed-in DevIQ account — it\u2019s free.',
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: theme.colorScheme.secondary,
+              height: 1.5,
+            ),
+          ),
+          const SizedBox(height: 14),
+          DevIQButton(
+            label: 'Sign in',
+            icon: Icons.login,
+            onPressed: () => context.push('/login'),
+          ),
+          const SizedBox(height: 4),
+          Center(
+            child: TextButton(
+              onPressed: () => context.push('/signup'),
+              child: const Text('New here? Create an account'),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 }

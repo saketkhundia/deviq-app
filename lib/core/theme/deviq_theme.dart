@@ -19,18 +19,16 @@ class DevIQText {
   }
 
   static TextStyle title(BuildContext context) =>
-      Theme.of(context).textTheme.titleLarge!.copyWith(
-            fontWeight: FontWeight.w600,
-            letterSpacing: -0.01,
-          );
+      Theme.of(context).textTheme.titleLarge!
+          .copyWith(fontWeight: FontWeight.w600, letterSpacing: -0.01);
 
   static TextStyle sectionLabel(BuildContext context) =>
       Theme.of(context).textTheme.labelSmall!.copyWith(
-            fontWeight: FontWeight.w600,
-            letterSpacing: 0.05 / 0.012, // ~0.05em expressed in logical px
-            // NOTE: Flutter letterSpacing is in logical pixels; 0.6 ≈ 0.05em
-            // at 12sp. Keep restrained.
-          );
+        fontWeight: FontWeight.w600,
+        letterSpacing: 0.05 / 0.012, // ~0.05em expressed in logical px
+        // NOTE: Flutter letterSpacing is in logical pixels; 0.6 ≈ 0.05em
+        // at 12sp. Keep restrained.
+      );
 
   static TextStyle mono(BuildContext context, {double size = 12.5}) =>
       GoogleFonts.jetBrainsMono(fontSize: size, height: 1.5);
@@ -39,20 +37,16 @@ class DevIQText {
 ThemeData _base(Brightness brightness) {
   final dark = brightness == Brightness.dark;
   final bg = dark ? DevIQColors.darkBackground : DevIQColors.lightBackground;
-  final surface =
-      dark ? DevIQColors.darkSurface : DevIQColors.lightSurface;
-  final border =
-      dark ? DevIQColors.darkBorder : DevIQColors.lightBorder;
+  final surface = dark ? DevIQColors.darkSurface : DevIQColors.lightSurface;
+  final border = dark ? DevIQColors.darkBorder : DevIQColors.lightBorder;
   final textPrimary = dark
       ? DevIQColors.darkTextPrimary
       : DevIQColors.lightTextPrimary;
   final textSecondary = dark
       ? DevIQColors.darkTextSecondary
       : DevIQColors.lightTextSecondary;
-  final accent =
-      dark ? DevIQColors.darkAccent : DevIQColors.lightAccent;
-  final accentFg =
-      dark ? DevIQColors.darkAccentFg : DevIQColors.lightAccentFg;
+  final accent = dark ? DevIQColors.darkAccent : DevIQColors.lightAccent;
+  final accentFg = dark ? DevIQColors.darkAccentFg : DevIQColors.lightAccentFg;
 
   final sans = GoogleFonts.interTextTheme(
     (dark ? ThemeData.dark() : ThemeData.light()).textTheme,
@@ -78,10 +72,7 @@ ThemeData _base(Brightness brightness) {
     canvasColor: bg,
     cardColor: surface,
     dividerColor: border,
-    textTheme: sans.apply(
-      bodyColor: textPrimary,
-      displayColor: textPrimary,
-    ),
+    textTheme: sans.apply(bodyColor: textPrimary, displayColor: textPrimary),
     appBarTheme: AppBarTheme(
       backgroundColor: bg,
       foregroundColor: textPrimary,
@@ -114,10 +105,11 @@ ThemeData _base(Brightness brightness) {
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(DevIQRadius.button),
         borderSide: BorderSide(
-            color: dark
-                ? DevIQColors.darkBorderStrong
-                : DevIQColors.lightBorderStrong,
-            width: 1.2),
+          color: dark
+              ? DevIQColors.darkBorderStrong
+              : DevIQColors.lightBorderStrong,
+          width: 1.2,
+        ),
       ),
       errorBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(DevIQRadius.button),
@@ -129,7 +121,8 @@ ThemeData _base(Brightness brightness) {
       labelStyle: sans.labelMedium,
       side: BorderSide(color: border),
       shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(DevIQRadius.pill)),
+        borderRadius: BorderRadius.circular(DevIQRadius.pill),
+      ),
     ),
     dialogTheme: DialogThemeData(
       backgroundColor: surface,
@@ -141,18 +134,19 @@ ThemeData _base(Brightness brightness) {
     bottomSheetTheme: BottomSheetThemeData(
       backgroundColor: surface,
       shape: RoundedRectangleBorder(
-        borderRadius:
-            const BorderRadius.vertical(top: Radius.circular(16)),
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
         side: BorderSide(color: border),
       ),
     ),
     snackBarTheme: SnackBarThemeData(
       backgroundColor: dark ? DevIQColors.darkSurface : textPrimary,
       contentTextStyle: sans.bodyMedium?.copyWith(
-          color: dark ? textPrimary : Colors.white),
+        color: dark ? textPrimary : Colors.white,
+      ),
       behavior: SnackBarBehavior.floating,
       shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(DevIQRadius.button)),
+        borderRadius: BorderRadius.circular(DevIQRadius.button),
+      ),
     ),
   );
 }

@@ -15,28 +15,35 @@ final secureStoreProvider = Provider<SecureStore>((_) => SecureStore());
 final prefsStoreProvider = Provider<PrefsStore>((_) => PrefsStore());
 
 // ---- Repositories ----
-final authRepoProvider =
-    Provider<AuthRepository>((ref) => AuthRepository(
-          ref.watch(apiClientProvider),
-          ref.watch(secureStoreProvider),
-        ));
+final authRepoProvider = Provider<AuthRepository>(
+  (ref) => AuthRepository(
+    ref.watch(apiClientProvider),
+    ref.watch(secureStoreProvider),
+  ),
+);
 final analysisRepoProvider = Provider<AnalysisRepository>(
-    (ref) => AnalysisRepository(ref.watch(apiClientProvider)));
-final aiRepoProvider =
-    Provider<AiRepository>((ref) => AiRepository(ref.watch(apiClientProvider)));
+  (ref) => AnalysisRepository(ref.watch(apiClientProvider)),
+);
+final aiRepoProvider = Provider<AiRepository>(
+  (ref) => AiRepository(ref.watch(apiClientProvider)),
+);
 final execRepoProvider = Provider<ExecutionRepository>(
-    (ref) => ExecutionRepository(ref.watch(apiClientProvider)));
+  (ref) => ExecutionRepository(ref.watch(apiClientProvider)),
+);
 final interviewRepoProvider = Provider<InterviewRepository>(
-    (ref) => InterviewRepository(ref.watch(apiClientProvider)));
+  (ref) => InterviewRepository(ref.watch(apiClientProvider)),
+);
 final profileRepoProvider = Provider<ProfileRepository>(
-    (ref) => ProfileRepository(ref.watch(apiClientProvider)));
+  (ref) => ProfileRepository(ref.watch(apiClientProvider)),
+);
 
 // ---- Theme ----
 enum AppThemeMode { system, dark, light }
 
 final themeModeProvider =
     StateNotifierProvider<ThemeModeController, AppThemeMode>(
-        (ref) => ThemeModeController(ref.watch(prefsStoreProvider)));
+      (ref) => ThemeModeController(ref.watch(prefsStoreProvider)),
+    );
 
 class ThemeModeController extends StateNotifier<AppThemeMode> {
   ThemeModeController(this._prefs) : super(AppThemeMode.dark) {
@@ -59,8 +66,8 @@ class ThemeModeController extends StateNotifier<AppThemeMode> {
   }
 
   ThemeMode get material => switch (state) {
-        AppThemeMode.dark => ThemeMode.dark,
-        AppThemeMode.light => ThemeMode.light,
-        AppThemeMode.system => ThemeMode.system,
-      };
+    AppThemeMode.dark => ThemeMode.dark,
+    AppThemeMode.light => ThemeMode.light,
+    AppThemeMode.system => ThemeMode.system,
+  };
 }

@@ -2,6 +2,7 @@ import '../../core/networking/api_client.dart';
 import '../models/analysis_models.dart';
 import '../models/github_models.dart';
 import '../models/platform_models.dart';
+import '../models/repo_models.dart';
 
 /// Read-only analytics endpoints. Each platform fetch is independent so a
 /// single failure never blocks the others (handled per-call upstream).
@@ -36,6 +37,15 @@ class AnalysisRepository {
   Future<ContributionData> contributions(String username) async {
     final data = await _api.get<dynamic>('/contributions/$username');
     return ContributionData.fromJson(username, data);
+  }
+
+  /// Compact recursive file tree for hover preview / explorer.
+  Future<RepoTree> repoTree(String owner, String repo) async {
+    final json = await _api.get<Map<String, dynamic>>(
+      '/repo-tree/$owner/$repo',
+      decode: (d) => (d as Map).cast<String, dynamic>(),
+    );
+    return RepoTree.fromJson(json);
   }
 
   /// Combined result; nulls mark platforms that were skipped or failed.

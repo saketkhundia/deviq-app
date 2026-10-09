@@ -29,18 +29,17 @@ class AnalyzeState {
     AnalysisResult? result,
     String? error,
     List<String>? failedPlatforms,
-  }) =>
-      AnalyzeState(
-        status: status ?? this.status,
-        result: result ?? this.result,
-        error: error,
-        failedPlatforms: failedPlatforms ?? this.failedPlatforms,
-      );
+  }) => AnalyzeState(
+    status: status ?? this.status,
+    result: result ?? this.result,
+    error: error,
+    failedPlatforms: failedPlatforms ?? this.failedPlatforms,
+  );
 }
 
-final analyzeProvider =
-    StateNotifierProvider<AnalyzeController, AnalyzeState>(
-        (ref) => AnalyzeController(ref));
+final analyzeProvider = StateNotifierProvider<AnalyzeController, AnalyzeState>(
+  (ref) => AnalyzeController(ref),
+);
 
 class AnalyzeController extends StateNotifier<AnalyzeState> {
   AnalyzeController(this._ref) : super(const AnalyzeState());
@@ -56,8 +55,9 @@ class AnalyzeController extends StateNotifier<AnalyzeState> {
     final cf = codeforces.trim();
     if (gh.isEmpty && lc.isEmpty && cf.isEmpty) {
       state = state.copyWith(
-          status: AnalyzeStatus.failure,
-          error: 'Enter at least one username to run an analysis.');
+        status: AnalyzeStatus.failure,
+        error: 'Enter at least one username to run an analysis.',
+      );
       return;
     }
     state = const AnalyzeState(status: AnalyzeStatus.loading);
@@ -65,16 +65,13 @@ class AnalyzeController extends StateNotifier<AnalyzeState> {
         .read(prefsStoreProvider)
         .saveUsernames(github: gh, leetcode: lc, codeforces: cf);
     try {
-      final result = await _ref.read(analysisRepoProvider).analyze(
-            github: gh,
-            leetcode: lc,
-            codeforces: cf,
-          );
+      final result = await _ref
+          .read(analysisRepoProvider)
+          .analyze(github: gh, leetcode: lc, codeforces: cf);
       if (!result.hasData) {
         state = state.copyWith(
           status: AnalyzeStatus.failure,
-          error:
-              'No data found. Check the usernames — the platform may be unreachable or the account may not exist.',
+          error: 'No data found. Check the usernames — the platform may be unreachable or the account may not exist.',
         );
         return;
       }
@@ -85,17 +82,19 @@ class AnalyzeController extends StateNotifier<AnalyzeState> {
         failed.add('Codeforces');
       }
       state = AnalyzeState(
-          status: AnalyzeStatus.success,
-          result: result,
-          failedPlatforms: failed);
+        status: AnalyzeStatus.success,
+        result: result,
+        failedPlatforms: failed,
+      );
       // Persist lightweight history + bump profile counter best-effort.
       await _ref.read(historyProvider.notifier).add(result);
     } on ApiException catch (e) {
       state = state.copyWith(status: AnalyzeStatus.failure, error: '$e');
     } catch (_) {
       state = state.copyWith(
-          status: AnalyzeStatus.failure,
-          error: 'Something went wrong. Please try again.');
+        status: AnalyzeStatus.failure,
+        error: 'Something went wrong. Please try again.',
+      );
     }
   }
 
@@ -105,7 +104,8 @@ class AnalyzeController extends StateNotifier<AnalyzeState> {
 // ---- History (persisted lightweight records) ----
 final historyProvider =
     StateNotifierProvider<HistoryController, List<HistoryRecord>>(
-        (ref) => HistoryController(ref.watch(prefsStoreProvider)));
+      (ref) => HistoryController(ref.watch(prefsStoreProvider)),
+    );
 
 class HistoryController extends StateNotifier<List<HistoryRecord>> {
   HistoryController(this._prefs) : super(const []) {
@@ -117,11 +117,15 @@ class HistoryController extends StateNotifier<List<HistoryRecord>> {
   Future<void> _load() async {
     try {
       final raw = await _prefs.historyJson();
-      state = raw
-          .map((e) => HistoryRecord.fromJson(
-              (jsonDecode(e) as Map).cast<String, dynamic>()))
-          .toList()
-        ..sort((a, b) => b.date.compareTo(a.date));
+      state =
+          raw
+              .map(
+                (e) => HistoryRecord.fromJson(
+                  (jsonDecode(e) as Map).cast<String, dynamic>(),
+                ),
+              )
+              .toList()
+            ..sort((a, b) => b.date.compareTo(a.date));
     } catch (_) {
       state = const [];
     }
@@ -133,7 +137,9 @@ class HistoryController extends StateNotifier<List<HistoryRecord>> {
       ...r.toHistoryJson(),
     });
     state = [rec, ...state].take(50).toList();
-    await _prefs.saveHistoryJson(state.map((e) => jsonEncode(e.toJson())).toList());
+    await _prefs.saveHistoryJson(
+      state.map((e) => jsonEncode(e.toJson())).toList(),
+    );
   }
 
   Future<void> clear() async {

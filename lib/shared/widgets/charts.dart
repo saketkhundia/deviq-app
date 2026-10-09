@@ -6,10 +6,18 @@ import '../../data/models/platform_models.dart';
 
 /// Thin horizontal distribution bars (languages, difficulty splits).
 class LanguageBars extends StatelessWidget {
-  const LanguageBars({super.key, required this.entries, this.maxItems = 6});
+  const LanguageBars({
+    super.key,
+    required this.entries,
+    this.maxItems = 6,
+    this.colors,
+  });
 
   final Map<String, double> entries;
   final int maxItems;
+
+  /// Optional per-row colors matched by entry key (stable under sorting).
+  final Map<String, Color>? colors;
 
   static const _palette = [
     DevIQColors.github,
@@ -24,39 +32,45 @@ class LanguageBars extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     if (entries.isEmpty) {
-      return Text('No data yet',
-          style: theme.textTheme.bodySmall
-              ?.copyWith(color: theme.colorScheme.secondary));
+      return Text(
+        'No data yet',
+        style: theme.textTheme.bodySmall?.copyWith(
+          color: theme.colorScheme.secondary,
+        ),
+      );
     }
     final sorted = entries.entries.toList()
       ..sort((a, b) => b.value.compareTo(a.value));
     final shown = sorted.take(maxItems).toList();
-    final total = shown.fold<double>(0, (a, e) => a + e.value);
+    final max = shown.fold<double>(0, (a, e) => a > e.value ? a : e.value);
     return Column(
       children: [
         for (var i = 0; i < shown.length; i++) ...[
           Row(
             children: [
               Container(
-                  width: 8,
-                  height: 8,
-                  decoration: BoxDecoration(
-                      color: _palette[i % _palette.length],
-                      shape: BoxShape.circle)),
+                width: 8,
+                height: 8,
+                decoration: BoxDecoration(
+                  color: colors?[shown[i].key] ?? _palette[i % _palette.length],
+                  shape: BoxShape.circle,
+                ),
+              ),
               const SizedBox(width: 8),
               Expanded(
-                child: Text(shown[i].key,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: theme.textTheme.bodySmall),
+                child: Text(
+                  shown[i].key,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: theme.textTheme.bodySmall,
+                ),
               ),
               Text(
-                total == 0
-                    ? '—'
-                    : '${(shown[i].value / total * 100).toStringAsFixed(0)}%',
+                shown[i].value.toStringAsFixed(0),
                 style: theme.textTheme.labelSmall?.copyWith(
-                    color: theme.colorScheme.secondary,
-                    fontWeight: FontWeight.w600),
+                  color: theme.colorScheme.secondary,
+                  fontWeight: FontWeight.w600,
+                ),
               ),
             ],
           ),
@@ -64,11 +78,12 @@ class LanguageBars extends StatelessWidget {
           ClipRRect(
             borderRadius: BorderRadius.circular(4),
             child: LinearProgressIndicator(
-              value: total == 0 ? 0 : shown[i].value / total,
+              value: max == 0 ? 0 : shown[i].value / max,
               minHeight: 5,
               backgroundColor: theme.dividerColor,
               valueColor: AlwaysStoppedAnimation(
-                  _palette[i % _palette.length]),
+                colors?[shown[i].key] ?? _palette[i % _palette.length],
+              ),
             ),
           ),
           if (i != shown.length - 1) const SizedBox(height: 10),
@@ -94,8 +109,9 @@ class ContributionChart extends StatelessWidget {
     for (var i = 0; i < days.length; i += step) {
       sampled.add(FlSpot(i.toDouble(), days[i].count.toDouble()));
     }
-    final maxY =
-        sampled.map((e) => e.y).fold<double>(0, (a, b) => a > b ? a : b);
+    final maxY = sampled
+        .map((e) => e.y)
+        .fold<double>(0, (a, b) => a > b ? a : b);
     return SizedBox(
       height: height,
       child: LineChart(
@@ -105,11 +121,13 @@ class ContributionChart extends StatelessWidget {
           gridData: FlGridData(
             show: true,
             drawVerticalLine: false,
-            horizontalInterval:
-                maxY <= 0 ? 1 : (maxY / 3).clamp(1, 9999).toDouble(),
+            horizontalInterval: maxY <= 0
+                ? 1
+                : (maxY / 3).clamp(1, 9999).toDouble(),
             getDrawingHorizontalLine: (_) => FlLine(
-                color: theme.dividerColor.withValues(alpha: 0.6),
-                strokeWidth: 0.7),
+              color: theme.dividerColor.withValues(alpha: 0.6),
+              strokeWidth: 0.7,
+            ),
           ),
           titlesData: const FlTitlesData(show: false),
           borderData: FlBorderData(show: false),
@@ -164,15 +182,13 @@ class ContributionHeatmap extends StatelessWidget {
     if (days.isEmpty) return const SizedBox.shrink();
     final weeks = <List<ContributionDay>>[];
     for (var i = 0; i < days.length; i += 7) {
-      weeks.add(days.sublist(
-          i, i + 7 > days.length ? days.length : i + 7));
+      weeks.add(days.sublist(i, i + 7 > days.length ? days.length : i + 7));
     }
     return LayoutBuilder(
       builder: (context, c) {
         const gap = 3.0;
-        final cell =
-            ((c.maxWidth - gap * (weeks.length - 1)) / weeks.length)
-                .clamp(4.0, 14.0);
+        final cell = ((c.maxWidth - gap * (weeks.length - 1)) / weeks.length)
+            .clamp(4.0, 14.0);
         return SingleChildScrollView(
           scrollDirection: Axis.horizontal,
           reverse: true,
@@ -236,9 +252,7 @@ class ScoreTrendChart extends StatelessWidget {
               dotData: const FlDotData(show: false),
               belowBarData: BarAreaData(
                 show: true,
-                color: Theme.of(context)
-                    .colorScheme
-                    .onSurface
+                color: Theme.of(context).colorScheme.onSurface
                     .withValues(alpha: 0.06),
               ),
             ),

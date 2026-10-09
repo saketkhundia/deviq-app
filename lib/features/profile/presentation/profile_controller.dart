@@ -5,12 +5,13 @@ import '../../app/providers/app_providers.dart';
 
 /// Profile state: fetch / edit / sync + connected accounts.
 class ProfileState {
-  const ProfileState(
-      {this.profile,
-      this.loading = false,
-      this.saving = false,
-      this.error,
-      this.connected = const {}});
+  const ProfileState({
+    this.profile,
+    this.loading = false,
+    this.saving = false,
+    this.error,
+    this.connected = const {},
+  });
 
   final UserProfile? profile;
   final bool loading;
@@ -24,19 +25,18 @@ class ProfileState {
     bool? saving,
     String? error,
     Map<String, bool>? connected,
-  }) =>
-      ProfileState(
-        profile: profile ?? this.profile,
-        loading: loading ?? this.loading,
-        saving: saving ?? this.saving,
-        error: error,
-        connected: connected ?? this.connected,
-      );
+  }) => ProfileState(
+    profile: profile ?? this.profile,
+    loading: loading ?? this.loading,
+    saving: saving ?? this.saving,
+    error: error,
+    connected: connected ?? this.connected,
+  );
 }
 
-final profileProvider =
-    StateNotifierProvider<ProfileController, ProfileState>(
-        (ref) => ProfileController(ref));
+final profileProvider = StateNotifierProvider<ProfileController, ProfileState>(
+  (ref) => ProfileController(ref),
+);
 
 class ProfileController extends StateNotifier<ProfileState> {
   ProfileController(this._ref) : super(const ProfileState());

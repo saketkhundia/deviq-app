@@ -17,13 +17,14 @@ class AuthUser {
   final String provider;
 
   factory AuthUser.fromJson(Map<String, dynamic> j) => AuthUser(
-        id: parseString(j['id'] ?? j['_id'] ?? j['user_id']),
-        name: parseString(j['name']),
-        email: parseString(j['email']),
-        avatar: parseString(
-            j['avatar'] ?? j['profile_picture_url'] ?? j['picture']),
-        provider: parseString(j['provider']),
-      );
+    id: parseString(j['id'] ?? j['_id'] ?? j['user_id']),
+    name: parseString(j['name']),
+    email: parseString(j['email']),
+    avatar: parseString(
+      j['avatar'] ?? j['profile_picture_url'] ?? j['picture'],
+    ),
+    provider: parseString(j['provider']),
+  );
 }
 
 /// Portfolio profile (GET/PUT /profile).
@@ -59,49 +60,51 @@ class UserProfile {
   final List<String> solvedProblems;
 
   factory UserProfile.fromJson(Map<String, dynamic> j) => UserProfile(
-        displayName: parseString(j['displayName'] ?? j['display_name']),
-        bio: parseString(j['bio']),
-        website: parseString(j['website']),
-        location: parseString(j['location']),
-        avatar: parseString(j['avatar'] ?? j['profile_picture_url']),
-        githubUsername: parseString(j['github_username']),
-        leetcodeUsername: parseString(j['leetcode_username']),
-        codeforcesHandle: parseString(j['codeforces_handle']),
-        analysesRun: parseInt(j['analysesRun']),
-        comparisonsRun: parseInt(j['comparisonsRun']),
-        aiInsightsRun: parseInt(j['aiInsightsRun']),
-        recentAnalyses:
-            asList(j['recentAnalyses']).map((e) => e.toString()).toList(),
-        solvedProblems:
-            asList(j['solvedProblems']).map((e) => e.toString()).toList(),
-      );
+    displayName: parseString(j['displayName'] ?? j['display_name']),
+    bio: parseString(j['bio']),
+    website: parseString(j['website']),
+    location: parseString(j['location']),
+    avatar: parseString(j['avatar'] ?? j['profile_picture_url']),
+    githubUsername: parseString(j['github_username']),
+    leetcodeUsername: parseString(j['leetcode_username']),
+    codeforcesHandle: parseString(j['codeforces_handle']),
+    analysesRun: parseInt(j['analysesRun']),
+    comparisonsRun: parseInt(j['comparisonsRun']),
+    aiInsightsRun: parseInt(j['aiInsightsRun']),
+    recentAnalyses: asList(j['recentAnalyses'])
+        .map((e) => e.toString())
+        .toList(),
+    solvedProblems: asList(j['solvedProblems'])
+        .map((e) => e.toString())
+        .toList(),
+  );
 
   factory UserProfile.empty() => const UserProfile(
-        displayName: '',
-        bio: '',
-        website: '',
-        location: '',
-        avatar: '',
-        githubUsername: '',
-        leetcodeUsername: '',
-        codeforcesHandle: '',
-        analysesRun: 0,
-        comparisonsRun: 0,
-        aiInsightsRun: 0,
-        recentAnalyses: [],
-        solvedProblems: [],
-      );
+    displayName: '',
+    bio: '',
+    website: '',
+    location: '',
+    avatar: '',
+    githubUsername: '',
+    leetcodeUsername: '',
+    codeforcesHandle: '',
+    analysesRun: 0,
+    comparisonsRun: 0,
+    aiInsightsRun: 0,
+    recentAnalyses: [],
+    solvedProblems: [],
+  );
 
   Map<String, dynamic> toJson() => {
-        'displayName': displayName,
-        'bio': bio,
-        'website': website,
-        'location': location,
-        'avatar': avatar,
-        'github_username': githubUsername,
-        'leetcode_username': leetcodeUsername,
-        'codeforces_handle': codeforcesHandle,
-      };
+    'displayName': displayName,
+    'bio': bio,
+    'website': website,
+    'location': location,
+    'avatar': avatar,
+    'github_username': githubUsername,
+    'leetcode_username': leetcodeUsername,
+    'codeforces_handle': codeforcesHandle,
+  };
 
   UserProfile copyWith({
     String? displayName,
@@ -112,20 +115,19 @@ class UserProfile {
     String? githubUsername,
     String? leetcodeUsername,
     String? codeforcesHandle,
-  }) =>
-      UserProfile(
-        displayName: displayName ?? this.displayName,
-        bio: bio ?? this.bio,
-        website: website ?? this.website,
-        location: location ?? this.location,
-        avatar: avatar ?? this.avatar,
-        githubUsername: githubUsername ?? this.githubUsername,
-        leetcodeUsername: leetcodeUsername ?? this.leetcodeUsername,
-        codeforcesHandle: codeforcesHandle ?? this.codeforcesHandle,
-        analysesRun: analysesRun,
-        comparisonsRun: comparisonsRun,
-        aiInsightsRun: aiInsightsRun,
-        recentAnalyses: recentAnalyses,
-        solvedProblems: solvedProblems,
-      );
+  }) => UserProfile(
+    displayName: displayName ?? this.displayName,
+    bio: bio ?? this.bio,
+    website: website ?? this.website,
+    location: location ?? this.location,
+    avatar: avatar ?? this.avatar,
+    githubUsername: githubUsername ?? this.githubUsername,
+    leetcodeUsername: leetcodeUsername ?? this.leetcodeUsername,
+    codeforcesHandle: codeforcesHandle ?? this.codeforcesHandle,
+    analysesRun: analysesRun,
+    comparisonsRun: comparisonsRun,
+    aiInsightsRun: aiInsightsRun,
+    recentAnalyses: recentAnalyses,
+    solvedProblems: solvedProblems,
+  );
 }

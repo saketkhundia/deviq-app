@@ -37,6 +37,8 @@ class GithubRepo {
     required this.updatedAt,
     required this.isPrivate,
     required this.isFork,
+    this.sizeKb = 0,
+    this.openIssues = 0,
   });
 
   final String name;
@@ -51,19 +53,27 @@ class GithubRepo {
   final bool isPrivate;
   final bool isFork;
 
+  /// Repository size in KB (GitHub REST `size`). Used for complexity signals.
+  final int sizeKb;
+
+  /// Open issues/PRs count. Used for complexity signals.
+  final int openIssues;
+
   factory GithubRepo.fromJson(Map<String, dynamic> j) => GithubRepo(
-        name: _s(j['name']),
-        fullName: _s(j['full_name']),
-        htmlUrl: _s(j['html_url']),
-        description: _s(j['description']),
-        language: _s(j['language']),
-        stars: _i(j['stargazers_count'] ?? j['stars']),
-        forks: _i(j['forks_count'] ?? j['forks']),
-        topics: asList(j['topics']).map((e) => e.toString()).toList(),
-        updatedAt: _s(j['updated_at']),
-        isPrivate: j['private'] == true,
-        isFork: j['fork'] == true,
-      );
+    name: _s(j['name']),
+    fullName: _s(j['full_name']),
+    htmlUrl: _s(j['html_url']),
+    description: _s(j['description']),
+    language: _s(j['language']),
+    stars: _i(j['stargazers_count'] ?? j['stars']),
+    forks: _i(j['forks_count'] ?? j['forks']),
+    topics: asList(j['topics']).map((e) => e.toString()).toList(),
+    updatedAt: _s(j['updated_at']),
+    isPrivate: j['private'] == true,
+    isFork: j['fork'] == true,
+    sizeKb: _i(j['size']),
+    openIssues: _i(j['open_issues_count'] ?? j['open_issues']),
+  );
 }
 
 /// Aggregated GitHub analytics from GET /analyze/{u}.
@@ -77,6 +87,7 @@ class GithubStats {
     required this.mostUsedLanguage,
     required this.languageDistribution,
     required this.repositories,
+    this.recentActive = 0,
   });
 
   final String username;
@@ -87,6 +98,9 @@ class GithubStats {
   final String mostUsedLanguage;
   final Map<String, int> languageDistribution;
   final List<GithubRepo> repositories;
+
+  /// Recently active repositories (backend `recent_projects`).
+  final int recentActive;
 
   factory GithubStats.fromJson(String username, Map<String, dynamic> j) {
     final a = asMap(j['analytics']);
@@ -111,17 +125,18 @@ class GithubStats {
       mostUsedLanguage: _s(a['most_used_language']),
       languageDistribution: langDist,
       repositories: repos,
+      recentActive: _i(a['recent_projects']),
     );
   }
 
   factory GithubStats.empty(String username) => GithubStats(
-        username: username,
-        totalProjects: 0,
-        totalStars: 0,
-        totalForks: 0,
-        skillScore: 0,
-        mostUsedLanguage: '',
-        languageDistribution: const {},
-        repositories: const [],
-      );
+    username: username,
+    totalProjects: 0,
+    totalStars: 0,
+    totalForks: 0,
+    skillScore: 0,
+    mostUsedLanguage: '',
+    languageDistribution: const {},
+    repositories: const [],
+  );
 }

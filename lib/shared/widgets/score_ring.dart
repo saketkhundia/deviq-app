@@ -14,12 +14,16 @@ class ScoreRing extends StatefulWidget {
     this.label,
     this.diameter = 148,
     this.duration = const Duration(milliseconds: 1400),
+    this.color,
   });
 
   final double score;
   final double maximum;
   final String? label;
   final double diameter;
+
+  /// Fixed ring color. Defaults to the standard score thresholds.
+  final Color? color;
   final Duration duration;
 
   @override
@@ -58,7 +62,7 @@ class _ScoreRingState extends State<ScoreRing>
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final color = DevIQColors.scoreColor(widget.score);
+    final color = widget.color ?? DevIQColors.scoreColor(widget.score);
     return SizedBox(
       width: widget.diameter,
       height: widget.diameter + (widget.label == null ? 0 : 22),
@@ -92,7 +96,8 @@ class _ScoreRingState extends State<ScoreRing>
                         Text(
                           '/ ${widget.maximum.toStringAsFixed(0)}',
                           style: theme.textTheme.labelSmall?.copyWith(
-                              color: theme.colorScheme.secondary),
+                            color: theme.colorScheme.secondary,
+                          ),
                         ),
                       ],
                     ),
@@ -103,13 +108,16 @@ class _ScoreRingState extends State<ScoreRing>
           ),
           if (widget.label != null) ...[
             const SizedBox(height: 4),
-            Text(widget.label!,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                textAlign: TextAlign.center,
-                style: theme.textTheme.labelSmall?.copyWith(
-                    color: theme.colorScheme.secondary,
-                    fontWeight: FontWeight.w600)),
+            Text(
+              widget.label!,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              textAlign: TextAlign.center,
+              style: theme.textTheme.labelSmall?.copyWith(
+                color: theme.colorScheme.secondary,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
           ],
         ],
       ),
@@ -118,8 +126,11 @@ class _ScoreRingState extends State<ScoreRing>
 }
 
 class _RingPainter extends CustomPainter {
-  _RingPainter(
-      {required this.progress, required this.color, required this.track});
+  _RingPainter({
+    required this.progress,
+    required this.color,
+    required this.track,
+  });
   final double progress;
   final Color color;
   final Color track;
@@ -139,8 +150,13 @@ class _RingPainter extends CustomPainter {
       ..style = PaintingStyle.stroke
       ..strokeWidth = 3
       ..strokeCap = StrokeCap.round;
-    canvas.drawArc(Rect.fromCircle(center: center, radius: r),
-        -math.pi / 2, progress * 2 * math.pi, false, arc);
+    canvas.drawArc(
+      Rect.fromCircle(center: center, radius: r),
+      -math.pi / 2,
+      progress * 2 * math.pi,
+      false,
+      arc,
+    );
   }
 
   @override

@@ -10,10 +10,11 @@ class AuthRepository {
   final ApiClient _api;
   final SecureStore _secure;
 
-  Future<({AuthUser user, String token})> signup(
-      {required String name,
-      required String email,
-      required String password}) async {
+  Future<({AuthUser user, String token})> signup({
+    required String name,
+    required String email,
+    required String password,
+  }) async {
     final json = await _api.post<Map<String, dynamic>>(
       '/auth/signup',
       body: {'name': name, 'email': email, 'password': password},
@@ -22,8 +23,10 @@ class AuthRepository {
     return _persist(json);
   }
 
-  Future<({AuthUser user, String token})> login(
-      {required String email, required String password}) async {
+  Future<({AuthUser user, String token})> login({
+    required String email,
+    required String password,
+  }) async {
     final json = await _api.post<Map<String, dynamic>>(
       '/auth/login',
       body: {'email': email, 'password': password},
@@ -37,9 +40,11 @@ class AuthRepository {
       '/auth/me',
       decode: (d) => (d as Map).cast<String, dynamic>(),
     );
-    final user = AuthUser.fromJson(json['user'] is Map
-        ? (json['user'] as Map).cast<String, dynamic>()
-        : json);
+    final user = AuthUser.fromJson(
+      json['user'] is Map
+          ? (json['user'] as Map).cast<String, dynamic>()
+          : json,
+    );
     return user;
   }
 
@@ -76,6 +81,11 @@ class AuthRepository {
     final userJson = json['user'] is Map
         ? (json['user'] as Map).cast<String, dynamic>()
         : json;
+    // Signup nests the user and carries the id as top-level `uid`.
+    userJson.putIfAbsent(
+      'id',
+      () => json['uid']?.toString() ?? userJson['user_id']?.toString(),
+    );
     final user = AuthUser.fromJson(userJson);
     if (token.isEmpty) {
       throw StateError('missing token');

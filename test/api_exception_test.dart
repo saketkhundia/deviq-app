@@ -4,8 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 void main() {
   group('ApiException mapping', () {
     test('status codes map to kinds + human messages', () {
-      expect(ApiException.fromStatus(401).kind,
-          ApiErrorKind.unauthorized);
+      expect(ApiException.fromStatus(401).kind, ApiErrorKind.unauthorized);
       expect(ApiException.fromStatus(404).kind, ApiErrorKind.notFound);
       expect(ApiException.fromStatus(429).kind, ApiErrorKind.rateLimited);
       expect(ApiException.fromStatus(500).kind, ApiErrorKind.server);

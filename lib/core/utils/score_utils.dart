@@ -29,17 +29,22 @@ class ScoreUtils {
   }
 
   static String verdict(double score) {
-    if (score >= 85) return 'Exceptional';
-    if (score >= 70) return 'Strong';
-    if (score >= 55) return 'Solid';
-    if (score >= 40) return 'Developing';
-    if (score > 0) return 'Getting started';
+    // Bands reconstructed from the web reference samples
+    // (100 → Elite, 40 → Junior, 13 → Beginner).
+    if (score >= 85) return 'Elite';
+    if (score >= 70) return 'Senior';
+    if (score >= 50) return 'Mid-Level';
+    if (score >= 25) return 'Junior';
+    if (score > 0) return 'Beginner';
     return 'No data';
   }
 
   /// Heuristic GitHub score from repo/stars/language signals (0–100).
-  static double githubScore(
-      {required int repos, required int stars, required int languages}) {
+  static double githubScore({
+    required int repos,
+    required int stars,
+    required int languages,
+  }) {
     var s = 0.0;
     s += (repos / 30 * 35).clamp(0, 35);
     s += (stars / 500 * 45).clamp(0, 45);
@@ -48,11 +53,12 @@ class ScoreUtils {
   }
 
   /// Heuristic LeetCode score from solved + rating mix (0–100).
-  static double leetcodeScore(
-      {required int solved,
-      required int hard,
-      int? rating,
-      int? ranking}) {
+  static double leetcodeScore({
+    required int solved,
+    required int hard,
+    int? rating,
+    int? ranking,
+  }) {
     var s = 0.0;
     s += (solved / 600 * 55).clamp(0, 55);
     s += (hard / 150 * 25).clamp(0, 25);
@@ -65,8 +71,7 @@ class ScoreUtils {
   }
 
   /// Heuristic Codeforces score from rating + activity (0–100).
-  static double codeforcesScore(
-      {int? rating, int? contests, int? solved}) {
+  static double codeforcesScore({int? rating, int? contests, int? solved}) {
     var s = 0.0;
     if (rating != null && rating > 0) {
       s += ((rating - 800) / 2400 * 60).clamp(0, 60);
@@ -87,6 +92,19 @@ class Formatters {
   static String date(DateTime d) => DateFormat('MMM d, yyyy').format(d);
   static String dateTime(DateTime d) =>
       DateFormat('MMM d, yyyy · h:mm a').format(d);
+
+  /// Compact relative time matching the web client ("2y ago", "5mo ago").
+  static String timeAgo(String iso) {
+    final d = DateTime.tryParse(iso);
+    if (d == null || iso.isEmpty) return '';
+    final diff = DateTime.now().difference(d.toLocal());
+    if (diff.inDays >= 365) return '${diff.inDays ~/ 365}y ago';
+    if (diff.inDays >= 30) return '${diff.inDays ~/ 30}mo ago';
+    if (diff.inDays >= 1) return '${diff.inDays}d ago';
+    if (diff.inHours >= 1) return '${diff.inHours}h ago';
+    if (diff.inMinutes >= 1) return '${diff.inMinutes}m ago';
+    return 'just now';
+  }
 }
 
 class Validators {

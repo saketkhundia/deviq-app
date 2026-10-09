@@ -101,24 +101,26 @@ void main() {
         codeforcesHandle: 'c',
         github: GithubStats.empty('g'),
         leetcode: const LeetcodeStats(
-            username: 'l',
-            totalSolved: 300,
-            easySolved: 100,
-            mediumSolved: 150,
-            hardSolved: 50,
-            ranking: 50000,
-            reputation: 100,
-            contestRating: 0,
-            globalRanking: 0),
+          username: 'l',
+          totalSolved: 300,
+          easySolved: 100,
+          mediumSolved: 150,
+          hardSolved: 50,
+          ranking: 50000,
+          reputation: 100,
+          contestRating: 0,
+          globalRanking: 0,
+        ),
         codeforces: const CodeforcesStats(
-            username: 'c',
-            rating: 1600,
-            maxRating: 1700,
-            rank: 'expert',
-            maxRank: 'expert',
-            problemsSolved: 200,
-            contestsParticipated: 20,
-            contribution: 5),
+          username: 'c',
+          rating: 1600,
+          maxRating: 1700,
+          rank: 'expert',
+          maxRank: 'expert',
+          problemsSolved: 200,
+          contestsParticipated: 20,
+          contribution: 5,
+        ),
         contributions: null,
         analyzedAt: DateTime(2026, 1, 1),
       );
@@ -135,11 +137,17 @@ void main() {
 
   group('Auth + profile models', () {
     test('parse safe fields', () {
-      final u = AuthUser.fromJson(
-          {'id': '1', 'name': 'A', 'email': 'a@b.c', 'provider': 'email'});
+      final u = AuthUser.fromJson({
+        'id': '1',
+        'name': 'A',
+        'email': 'a@b.c',
+        'provider': 'email',
+      });
       expect(u.email, 'a@b.c');
-      final p = UserProfile.fromJson(
-          {'displayName': 'A', 'github_username': 'gh'});
+      final p = UserProfile.fromJson({
+        'displayName': 'A',
+        'github_username': 'gh',
+      });
       expect(p.githubUsername, 'gh');
       expect(p.copyWith(bio: 'hi').bio, 'hi');
       expect(UserProfile.empty().analysesRun, 0);
@@ -152,7 +160,7 @@ void main() {
         'summary': 'Looks good',
         'score': 82,
         'bugs': [
-          {'title': 'Off-by-one', 'detail': 'fix loop'}
+          {'title': 'Off-by-one', 'detail': 'fix loop'},
         ],
         'warnings': ['unused var'],
         'security_issues': [],
@@ -162,15 +170,77 @@ void main() {
         'fixed_code': 'x=1',
       });
       expect(r.issues.length, 2);
-      expect(r.timeComplexity, 'O(n)');
+      expect(r.timeComplexity.value, 'O(n)');
+      expect(r.suggestions.single.display, 'add tests');
       final m = ChatMessage(role: 'user', content: 'hi');
       expect(m.toJson()['role'], 'user');
-      final cp = CompanyProblem.fromJson(
-          {'slug': 'a', 'title': 'T', 'difficulty': 'Easy', 'url': 'u'});
+      final cp = CompanyProblem.fromJson({
+        'slug': 'a',
+        'title': 'T',
+        'difficulty': 'Easy',
+        'url': 'u',
+      });
       expect(cp.difficulty, 'Easy');
-      final e = ExecutionResult.fromJson(
-          {'output': 'hi', 'exit_code': 0, 'elapsed_ms': 12});
+      final e = ExecutionResult.fromJson({
+        'output': 'hi',
+        'exit_code': 0,
+        'elapsed_ms': 12,
+      });
       expect(e.success, isTrue);
+    });
+
+    test('review parses the live backend shape', () {
+      final r = CodeReviewResult.fromJson({
+        'summary': 'Uses print instead of console.log.',
+        'score': 95,
+        'bugs': [
+          {
+            'severity': 'MEDIUM',
+            'title': 'Incorrect language for JavaScript context',
+            'line': 1,
+            'category': 'language mismatch',
+            'detail': 'print is not valid JavaScript.',
+            'trigger': 'Running in a JS engine',
+            'expected': 'console.log output',
+            'actual': 'SyntaxError',
+            'fix_explanation': 'Replace print with console.log.',
+            'confidence': 100,
+          },
+        ],
+        'warnings': [],
+        'security': [],
+        'suggestions': [
+          {'title': 'Add file header comment', 'detail': 'Describe purpose.'},
+        ],
+        'quality': [
+          {'category': 'READABILITY', 'detail': 'Clear and concise.'},
+        ],
+        'improvements': [],
+        'time_complexity': {
+          'value': 'O(1)',
+          'explanation': 'Single constant-time operation.',
+        },
+        'space_complexity': {
+          'value': 'O(1)',
+          'explanation': 'No extra allocation.',
+        },
+        'fixed_code': 'console.log("Hello World");',
+        'repair_strategy': 'MINIMAL_FIX',
+        'status': 'success',
+      });
+      final bug = r.bugs.single;
+      expect(bug.line, 1);
+      expect(bug.trigger, contains('JS engine'));
+      expect(bug.expected, contains('console.log'));
+      expect(bug.actual, 'SyntaxError');
+      expect(bug.fix, contains('console.log'));
+      expect(bug.confidence, 100);
+      expect(r.timeComplexity.value, 'O(1)');
+      expect(r.timeComplexity.explanation, contains('constant-time'));
+      expect(r.quality.single.title, 'READABILITY');
+      expect(r.suggestions.single.display, contains('Add file header'));
+      expect(r.repairStrategy, 'MINIMAL FIX');
+      expect(r.fixedCode, contains('console.log'));
     });
   });
 }

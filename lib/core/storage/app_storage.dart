@@ -4,15 +4,17 @@ import 'package:shared_preferences/shared_preferences.dart';
 /// Secure storage for credentials/tokens ONLY. Never store analytics here.
 class SecureStore {
   SecureStore({FlutterSecureStorage? storage})
-      : _storage = storage ?? const FlutterSecureStorage();
+    : _storage = storage ?? const FlutterSecureStorage();
 
   final FlutterSecureStorage _storage;
 
   static const _kToken = 'deviq.auth.token';
   static const _kEmail = 'deviq.auth.email';
 
-  Future<void> saveSession(
-      {required String token, required String email}) async {
+  Future<void> saveSession({
+    required String token,
+    required String email,
+  }) async {
     try {
       await _storage.write(key: _kToken, value: token);
       await _storage.write(key: _kEmail, value: email);
@@ -109,13 +111,16 @@ class PrefsStore {
 
   // Last analyzed usernames (prefill)
   Future<Map<String, String>> lastUsernames() async => {
-        'github': await _getS(_kLastGh) ?? '',
-        'leetcode': await _getS(_kLastLc) ?? '',
-        'codeforces': await _getS(_kLastCf) ?? '',
-      };
+    'github': await _getS(_kLastGh) ?? '',
+    'leetcode': await _getS(_kLastLc) ?? '',
+    'codeforces': await _getS(_kLastCf) ?? '',
+  };
 
-  Future<void> saveUsernames(
-      {String? github, String? leetcode, String? codeforces}) async {
+  Future<void> saveUsernames({
+    String? github,
+    String? leetcode,
+    String? codeforces,
+  }) async {
     if (github != null) await _setS(_kLastGh, github);
     if (leetcode != null) await _setS(_kLastLc, leetcode);
     if (codeforces != null) await _setS(_kLastCf, codeforces);

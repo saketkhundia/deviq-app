@@ -19,6 +19,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class _FakeInterviewRepo extends Mock implements InterviewRepository {}
 
@@ -62,9 +63,8 @@ Future<void> expectFits(
                   child: Builder(
                     builder: (context) => MediaQuery(
                       // Preserve ambient size/padding; adjust text scale only.
-                      data: MediaQuery.of(context).copyWith(
-                        textScaler: TextScaler.linear(textScale),
-                      ),
+                      data: MediaQuery.of(context)
+                          .copyWith(textScaler: TextScaler.linear(textScale)),
                       child: screen,
                     ),
                   ),
@@ -73,28 +73,48 @@ Future<void> expectFits(
       ),
     ),
   );
-  await t.pumpAndSettle(const Duration(milliseconds: 100),
-      EnginePhase.sendSemanticsUpdate, const Duration(seconds: 10));
-  expect(t.takeException(), isNull,
-      reason: 'Layout overflow/exception at ${width}x$height '
-          '${dark ? 'dark' : 'light'} (scale $textScale)');
+  await t.pumpAndSettle(
+    const Duration(milliseconds: 100),
+    EnginePhase.sendSemanticsUpdate,
+    const Duration(seconds: 10),
+  );
+  expect(
+    t.takeException(),
+    isNull,
+    reason:
+        'Layout overflow/exception at ${width}x$height '
+        '${dark ? 'dark' : 'light'} (scale $textScale)',
+  );
 }
 
 void main() {
+  setUpAll(() {
+    // Hermetic prefs backing so async loads (theme, history, prefill)
+    // resolve instead of hanging on the unmocked plugin channel.
+    SharedPreferences.setMockInitialValues({});
+  });
+
   group('mobile layout fits 360x800 dark (primary target)', () {
     testWidgets('home', (t) => expectFits(t, const HomeScreen()));
     testWidgets('analyze idle', (t) => expectFits(t, const AnalyzeScreen()));
     testWidgets('compare idle', (t) => expectFits(t, const CompareScreen()));
-    testWidgets('review idle',
-        (t) => expectFits(t, const ReviewScreen(), pushed: true));
-    testWidgets('history empty',
-        (t) => expectFits(t, const HistoryScreen(), pushed: true));
-    testWidgets('settings',
-        (t) => expectFits(t, const SettingsScreen(), pushed: true));
     testWidgets(
-        'playground', (t) => expectFits(t, const PlaygroundScreen()));
+      'review idle',
+      (t) => expectFits(t, const ReviewScreen(), pushed: true),
+    );
     testWidgets(
-        'ai chat', (t) => expectFits(t, const AiScreen(), pushed: true));
+      'history empty',
+      (t) => expectFits(t, const HistoryScreen(), pushed: true),
+    );
+    testWidgets(
+      'settings',
+      (t) => expectFits(t, const SettingsScreen(), pushed: true),
+    );
+    testWidgets('playground', (t) => expectFits(t, const PlaygroundScreen()));
+    testWidgets(
+      'ai chat',
+      (t) => expectFits(t, const AiScreen(), pushed: true),
+    );
     testWidgets('login', (t) => expectFits(t, const LoginScreen()));
     testWidgets('signup', (t) => expectFits(t, const SignupScreen()));
   });
@@ -105,27 +125,31 @@ void main() {
 
     setUp(() {
       profiles = _FakeProfileRepo();
-      when(() => profiles.fetch())
-          .thenAnswer((_) async => UserProfile.empty());
+      when(() => profiles.fetch()).thenAnswer((_) async => UserProfile.empty());
       when(() => profiles.connectedAccounts())
           .thenAnswer((_) async => <String, bool>{});
       interviews = _FakeInterviewRepo();
-      when(() => interviews.companyProblems(any()))
-          .thenAnswer((_) async => []);
+      when(() => interviews.companyProblems(any())).thenAnswer((_) async => []);
     });
 
-    testWidgets('profile', (t) => expectFits(
-          t,
-          const ProfileScreen(),
-          pushed: true,
-          overrides: [profileRepoProvider.overrideWithValue(profiles)],
-        ));
-    testWidgets('interview empty problems', (t) => expectFits(
-          t,
-          const InterviewScreen(),
-          pushed: true,
-          overrides: [interviewRepoProvider.overrideWithValue(interviews)],
-        ));
+    testWidgets(
+      'profile',
+      (t) => expectFits(
+        t,
+        const ProfileScreen(),
+        pushed: true,
+        overrides: [profileRepoProvider.overrideWithValue(profiles)],
+      ),
+    );
+    testWidgets(
+      'interview empty problems',
+      (t) => expectFits(
+        t,
+        const InterviewScreen(),
+        pushed: true,
+        overrides: [interviewRepoProvider.overrideWithValue(interviews)],
+      ),
+    );
   });
 
   group('viewport matrix', () {
@@ -148,8 +172,13 @@ void main() {
       await expectFits(t, const AnalyzeScreen(), textScale: 1.25);
     });
     testWidgets('settings small 320', (t) async {
-      await expectFits(t, const SettingsScreen(),
-          width: 320, height: 700, pushed: true);
+      await expectFits(
+        t,
+        const SettingsScreen(),
+        width: 320,
+        height: 700,
+        pushed: true,
+      );
     });
     testWidgets('ai chat 360 light pushed', (t) async {
       await expectFits(t, const AiScreen(), dark: false, pushed: true);

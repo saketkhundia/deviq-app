@@ -36,12 +36,15 @@ class ProfileRepository {
   }
 
   Future<void> save(UserProfile p) async {
-    await _api.put<dynamic>('/profile', body: {
-      ...p.toJson(),
-      'bio': p.bio,
-      'website': p.website,
-      'location': p.location,
-    });
+    await _api.put<dynamic>(
+      '/profile',
+      body: {
+        ...p.toJson(),
+        'bio': p.bio,
+        'website': p.website,
+        'location': p.location,
+      },
+    );
   }
 
   Future<void> sync(UserProfile p) async {

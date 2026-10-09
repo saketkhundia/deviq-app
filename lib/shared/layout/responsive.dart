@@ -64,6 +64,7 @@ class DevIQPage extends StatelessWidget {
     this.reserveNav = true,
     this.maxWidth = 720,
     this.topPadding = 12,
+    this.controller,
   });
 
   final List<Widget> children;
@@ -71,21 +72,25 @@ class DevIQPage extends StatelessWidget {
   final double maxWidth;
   final double topPadding;
 
+  /// Optional scroll controller for programmatic section navigation.
+  final ScrollController? controller;
+
   @override
   Widget build(BuildContext context) {
     final pad = DevIQResponsive.hPadding(context);
     // Floating pill nav ≈ 62px + 12 margin + gesture inset.
-    final bottom = (reserveNav ? 92.0 : 28.0) +
+    final bottom =
+        (reserveNav ? 92.0 : 28.0) +
         MediaQuery.viewPaddingOf(context).bottom * 0;
     return SingleChildScrollView(
-      padding:
-          EdgeInsets.fromLTRB(pad, topPadding, pad, bottom),
+      controller: controller,
+      padding: EdgeInsets.fromLTRB(pad, topPadding, pad, bottom),
       physics: const ClampingScrollPhysics(),
       child: Center(
         child: ConstrainedBox(
           constraints: BoxConstraints(maxWidth: maxWidth),
           child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: children,
           ),
         ),
@@ -121,11 +126,7 @@ class DevIQSubPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Scaffold(
-        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-        body: SafeArea(
-          top: true,
-          bottom: false,
-          child: child,
-        ),
-      );
+    backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+    body: SafeArea(top: true, bottom: false, child: child),
+  );
 }

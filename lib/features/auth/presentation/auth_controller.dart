@@ -6,35 +6,42 @@ import '../../app/providers/app_providers.dart';
 enum AuthStatus { unknown, authenticated, unauthenticated }
 
 class AuthState {
-  const AuthState(
-      {required this.status, this.user, this.error, this.working = false});
+  const AuthState({
+    required this.status,
+    this.user,
+    this.error,
+    this.working = false,
+  });
   final AuthStatus status;
   final AuthUser? user;
   final String? error;
   final bool working;
 
-  AuthState copyWith(
-          {AuthStatus? status,
-          AuthUser? user,
-          String? error,
-          bool? working}) =>
-      AuthState(
-        status: status ?? this.status,
-        user: user ?? this.user,
-        error: error,
-        working: working ?? this.working,
-      );
+  AuthState copyWith({
+    AuthStatus? status,
+    AuthUser? user,
+    String? error,
+    bool? working,
+  }) => AuthState(
+    status: status ?? this.status,
+    user: user ?? this.user,
+    error: error,
+    working: working ?? this.working,
+  );
 }
 
-final authProvider =
-    StateNotifierProvider<AuthController, AuthState>(
-        (ref) => AuthController(ref));
+final authProvider = StateNotifierProvider<AuthController, AuthState>(
+  (ref) => AuthController(ref),
+);
 
 class AuthController extends StateNotifier<AuthState> {
   AuthController(this._ref)
-      : super(const AuthState(status: AuthStatus.unknown));
+    : super(const AuthState(status: AuthStatus.unknown));
 
   final Ref _ref;
+
+  /// Submission guard for duplicate-tap protection in screens.
+  bool get working => state.working;
 
   Future<void> bootstrap() async {
     final repo = _ref.read(authRepoProvider);
@@ -68,14 +75,16 @@ class AuthController extends StateNotifier<AuthState> {
     }
   }
 
-  Future<bool> signup(
-      {required String name,
-      required String email,
-      required String password}) async {
+  Future<bool> signup({
+    required String name,
+    required String email,
+    required String password,
+  }) async {
     state = state.copyWith(working: true, error: null);
     try {
-      final r = await _ref.read(authRepoProvider).signup(
-          name: name, email: email, password: password);
+      final r = await _ref
+          .read(authRepoProvider)
+          .signup(name: name, email: email, password: password);
       state = AuthState(status: AuthStatus.authenticated, user: r.user);
       return true;
     } catch (e) {

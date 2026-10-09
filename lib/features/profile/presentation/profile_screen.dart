@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../data/models/auth_models.dart';
 import '../../../shared/widgets/deviq_widgets.dart';
+import '../../../shared/widgets/platform_icons.dart';
 import '../../../shared/layout/responsive.dart';
 import '../../analyze/presentation/analyze_controller.dart';
 import '../../auth/presentation/auth_controller.dart';
@@ -205,7 +206,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                     controller: _gh,
                     label: 'GitHub username',
                     hint: 'torvalds',
-                    prefixIcon: Icons.hub_outlined,
+                    prefixIcon: PlatformIcons.of(DevPlatform.github),
                     monospace: true,
                   ),
                   const SizedBox(height: 10),
@@ -213,7 +214,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                     controller: _lc,
                     label: 'LeetCode username',
                     hint: 'username',
-                    prefixIcon: Icons.code_outlined,
+                    prefixIcon: PlatformIcons.of(DevPlatform.leetcode),
                     monospace: true,
                   ),
                   const SizedBox(height: 10),
@@ -221,7 +222,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                     controller: _cf,
                     label: 'Codeforces handle',
                     hint: 'tourist',
-                    prefixIcon: Icons.emoji_events_outlined,
+                    prefixIcon: PlatformIcons.of(DevPlatform.codeforces),
                     monospace: true,
                   ),
                 ],

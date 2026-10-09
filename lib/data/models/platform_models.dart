@@ -12,6 +12,8 @@ class LeetcodeStats {
     required this.reputation,
     required this.contestRating,
     required this.globalRanking,
+    this.contestsAttended = 0,
+    this.topPercentage = 0,
   });
 
   final String username;
@@ -24,11 +26,18 @@ class LeetcodeStats {
   final int contestRating;
   final int globalRanking;
 
+  /// Contests attended (backend `contests_attended`, 0 when absent).
+  final int contestsAttended;
+
+  /// Global top percentile (backend `top_percentage`, 0 when absent).
+  final double topPercentage;
+
   factory LeetcodeStats.fromJson(String username, Map<String, dynamic> j) {
     final contest = asMap(j['contest']);
     return LeetcodeStats(
-      username:
-          parseString(j['username']).isEmpty ? username : parseString(j['username']),
+      username: parseString(j['username']).isEmpty
+          ? username
+          : parseString(j['username']),
       totalSolved: parseInt(j['total_solved'] ?? j['solved']),
       easySolved: parseInt(j['easy_solved'] ?? j['easy']),
       mediumSolved: parseInt(j['medium_solved'] ?? j['medium']),
@@ -36,9 +45,15 @@ class LeetcodeStats {
       ranking: parseInt(j['ranking']),
       reputation: parseInt(j['reputation']),
       contestRating: parseInt(
-          j['contest_rating'] ?? contest['rating'] ?? j['contestRating']),
+        j['contest_rating'] ?? contest['rating'] ?? j['contestRating'],
+      ),
       globalRanking: parseInt(
-          j['global_ranking'] ?? contest['global_ranking'] ?? j['ranking']),
+        j['global_ranking'] ?? contest['global_ranking'] ?? j['ranking'],
+      ),
+      contestsAttended: parseInt(
+        j['contests_attended'] ?? contest['count'] ?? contest['attended'],
+      ),
+      topPercentage: parseDouble(j['top_percentage'] ?? j['topPercentile']),
     );
   }
 }
@@ -74,28 +89,30 @@ class CodeforcesStats {
         maxRating: parseInt(j['max_rating'] ?? j['maxRating']),
         rank: parseString(j['rank']),
         maxRank: parseString(j['max_rank'] ?? j['maxRank']),
-        problemsSolved:
-            parseInt(j['problems_solved'] ?? j['problemsSolved']),
+        problemsSolved: parseInt(j['problems_solved'] ?? j['problemsSolved']),
         contestsParticipated: parseInt(
-            j['contests_participated'] ?? j['contestsParticipated']),
+          j['contests_participated'] ?? j['contestsParticipated'],
+        ),
         contribution: parseInt(j['contribution']),
       );
 }
 
 /// Single contribution-calendar day from GET /contributions/{u}.
 class ContributionDay {
-  const ContributionDay(
-      {required this.date, required this.count, required this.level});
+  const ContributionDay({
+    required this.date,
+    required this.count,
+    required this.level,
+  });
   final String date;
   final int count;
   final int level;
 
-  factory ContributionDay.fromJson(Map<String, dynamic> j) =>
-      ContributionDay(
-        date: parseString(j['date']),
-        count: parseInt(j['count']),
-        level: parseInt(j['level']),
-      );
+  factory ContributionDay.fromJson(Map<String, dynamic> j) => ContributionDay(
+    date: parseString(j['date']),
+    count: parseInt(j['count']),
+    level: parseInt(j['level']),
+  );
 }
 
 class ContributionData {

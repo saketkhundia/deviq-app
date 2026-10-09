@@ -7,8 +7,10 @@ class AiRepository {
   AiRepository(this._api);
   final ApiClient _api;
 
-  Future<CodeReviewResult> review(
-      {required String code, String language = 'javascript'}) async {
+  Future<CodeReviewResult> review({
+    required String code,
+    String language = 'javascript',
+  }) async {
     final json = await _api.post<Map<String, dynamic>>(
       '/ai/review',
       body: {'code': code, 'language': language},
@@ -20,32 +22,41 @@ class AiRepository {
     return CodeReviewResult.fromJson(data);
   }
 
-  Future<String> optimize(
-      {required String code, String language = 'javascript'}) async {
+  Future<String> optimize({
+    required String code,
+    String language = 'javascript',
+  }) async {
     final json = await _api.post<Map<String, dynamic>>(
       '/ai/optimize',
       body: {'code': code, 'language': language},
       decode: (d) => (d as Map).cast<String, dynamic>(),
     );
-    return parseString(json['optimized_code'] ??
-        json['optimizedCode'] ??
-        json['result'] ??
-        json['response']);
+    return parseString(
+      json['optimized_code'] ??
+          json['optimizedCode'] ??
+          json['result'] ??
+          json['response'],
+    );
   }
 
-  Future<String> explain(
-      {required String code, String language = 'javascript'}) async {
+  Future<String> explain({
+    required String code,
+    String language = 'javascript',
+  }) async {
     final json = await _api.post<Map<String, dynamic>>(
       '/ai/explain',
       body: {'code': code, 'language': language},
       decode: (d) => (d as Map).cast<String, dynamic>(),
     );
     return parseString(
-        json['explanation'] ?? json['result'] ?? json['response']);
+      json['explanation'] ?? json['result'] ?? json['response'],
+    );
   }
 
-  Future<String> insights(
-      {required String prompt, List<ChatMessage> history = const []}) async {
+  Future<String> insights({
+    required String prompt,
+    List<ChatMessage> history = const [],
+  }) async {
     final json = await _api.post<Map<String, dynamic>>(
       '/ai/insights',
       body: {
