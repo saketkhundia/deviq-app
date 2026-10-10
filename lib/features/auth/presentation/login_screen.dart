@@ -16,23 +16,7 @@ class AuthWordmark extends StatelessWidget {
     final theme = Theme.of(context);
     return Row(
       children: [
-        Container(
-          width: 34,
-          height: 34,
-          decoration: BoxDecoration(
-            color: theme.colorScheme.primary,
-            borderRadius: BorderRadius.circular(10),
-          ),
-          alignment: Alignment.center,
-          child: Text(
-            'D',
-            style: TextStyle(
-              color: theme.colorScheme.onPrimary,
-              fontWeight: FontWeight.w800,
-              fontSize: 18,
-            ),
-          ),
-        ),
+        const DevIQLogo(size: 34, radius: 10),
         const SizedBox(width: 10),
         Expanded(
           child: Column(
@@ -148,7 +132,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                       ),
                       const SizedBox(height: 6),
                       Text(
-                        'Sign in to continue to your developer profile.',
+                        'Your developer journey continues here.',
                         style: theme.textTheme.bodyMedium?.copyWith(
                           color: theme.colorScheme.secondary,
                         ),
@@ -177,11 +161,24 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                       // no recovery endpoint (see phase report). A link
                       // would be a fake flow.
                       const SizedBox(height: 4),
-                      if (auth.error != null) ...[
-                        AuthErrorBanner(message: auth.error!),
-                        const SizedBox(height: 12),
-                      ] else
-                        const SizedBox(height: 12),
+                      // AnimatedSize keeps error appearance smooth instead
+                      // of jumping the form below it.
+                      AnimatedSize(
+                        duration: const Duration(milliseconds: 200),
+                        curve: Curves.easeOut,
+                        child: auth.error != null
+                            ? Column(
+                                crossAxisAlignment: CrossAxisAlignment.stretch,
+                                children: [
+                                  AuthErrorBanner(message: auth.error!),
+                                  const SizedBox(height: 12),
+                                ],
+                              )
+                            : const SizedBox(
+                                width: double.infinity,
+                                height: 12,
+                              ),
+                      ),
                       DevIQButton(
                         label: 'Sign In',
                         loading: auth.working,
@@ -224,7 +221,55 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   }
 }
 
-/// Password field with autofill + show/hide toggle (semantic label).
+/// Restrained password-strength meter (advisory only — the backend
+/// enforces just the 8-character minimum, and validation is unchanged).
+class PasswordStrengthMeter extends StatelessWidget {
+  const PasswordStrengthMeter({super.key, required this.controller});
+
+  final TextEditingController controller;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return ValueListenableBuilder<TextEditingValue>(
+      valueListenable: controller,
+      builder: (context, v, _) {
+        if (v.text.isEmpty) return const SizedBox.shrink();
+        final score = Validators.passwordStrength(v.text);
+        final color = switch (score) {
+          <= 1 => DevIQColors.error,
+          2 => DevIQColors.warning,
+          3 => DevIQColors.github,
+          _ => DevIQColors.success,
+        };
+        return Row(
+          children: [
+            for (var i = 0; i < 4; i++)
+              Expanded(
+                child: Container(
+                  height: 3,
+                  margin: EdgeInsets.only(right: i == 3 ? 0 : 6),
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(2),
+                    color: i < score ? color : theme.dividerColor,
+                  ),
+                ),
+              ),
+            const SizedBox(width: 8),
+            Text(
+              Validators.passwordStrengthLabel(score),
+              style: theme.textTheme.labelSmall?.copyWith(
+                color: theme.colorScheme.secondary,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+}
+
 class PasswordField extends StatelessWidget {
   const PasswordField({
     super.key,

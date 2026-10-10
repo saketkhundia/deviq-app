@@ -469,6 +469,44 @@ class StatRow extends StatelessWidget {
   }
 }
 
+/// DevIQ brand mark (score-ring logo asset). Use everywhere the product
+/// identity appears instead of ad-hoc letter tiles.
+/// To swap in the exact designer file, replace assets/icon/deviq-logo.png.
+class DevIQLogo extends StatelessWidget {
+  const DevIQLogo({super.key, this.size = 28, this.radius = 8});
+
+  final double size;
+  final double radius;
+
+  @override
+  Widget build(BuildContext context) => ClipRRect(
+    borderRadius: BorderRadius.circular(radius),
+    child: Image.asset(
+      'assets/icon/deviq-logo.png',
+      width: size,
+      height: size,
+      fit: BoxFit.cover,
+      errorBuilder: (context, _, _) => Container(
+        width: size,
+        height: size,
+        alignment: Alignment.center,
+        decoration: BoxDecoration(
+          color: Theme.of(context).colorScheme.primary,
+          borderRadius: BorderRadius.circular(radius),
+        ),
+        child: Text(
+          'D',
+          style: TextStyle(
+            color: Theme.of(context).colorScheme.onPrimary,
+            fontWeight: FontWeight.w800,
+            fontSize: size * 0.55,
+          ),
+        ),
+      ),
+    ),
+  );
+}
+
 /// Avatar with initials fallback.
 class ProfileAvatar extends StatelessWidget {
   const ProfileAvatar({super.key, this.url, this.name, this.radius = 18});

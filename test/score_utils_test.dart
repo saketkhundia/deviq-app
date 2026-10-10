@@ -67,6 +67,15 @@ void main() {
       expect(Validators.password('short', isSignup: true), isNotNull);
       expect(Validators.password('long-enough', isSignup: true), isNull);
     });
+
+    test('password strength is advisory 0-4', () {
+      expect(Validators.passwordStrength(''), 0);
+      expect(Validators.passwordStrength('abcdefgh'), 1);
+      expect(Validators.passwordStrength('Abcdefgh'), 2);
+      expect(Validators.passwordStrength('Abcdefgh12!#'), 4);
+      expect(Validators.passwordStrengthLabel(0), 'Weak');
+      expect(Validators.passwordStrengthLabel(4), 'Strong');
+    });
   });
 
   group('Codeforces rank colors', () {

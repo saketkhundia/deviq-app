@@ -140,7 +140,8 @@ class ApiClient {
         e.type == DioExceptionType.unknown;
   }
 
-  T _decode<T>(dynamic data, T Function(dynamic json)? decode) {    if (decode != null) {
+  T _decode<T>(dynamic data, T Function(dynamic json)? decode) {
+    if (decode != null) {
       try {
         return decode(data);
       } catch (_) {

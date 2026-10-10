@@ -43,6 +43,7 @@ dev_dependencies:
     sdk: flutter
   flutter_lints: ^6.0.0
   mocktail: ^1.0.4
+  flutter_launcher_icons: ^0.14.4
 
 flutter:
   uses-material-design: true
@@ -50,3 +51,16 @@ flutter:
   assets:
     - assets/fonts/
     - assets/logos/
+    - assets/icon/
+
+flutter_launcher_icons:
+  android: true
+  ios: false
+  image_path: "assets/icon/deviq-logo.png"
+  adaptive_icon_background: "#000000"
+  adaptive_icon_foreground: "assets/icon/deviq-logo.png"
+  web:
+    generate: true
+    image_path: "assets/icon/deviq-logo.png"
+    background_color: "#000000"
+    theme_color: "#000000"

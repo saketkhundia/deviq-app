@@ -134,4 +134,26 @@ class Validators {
     if (isSignup && v.length < 8) return 'Minimum 8 characters';
     return null;
   }
+
+  /// Advisory password-strength score 0–4. Display-only: the backend
+  /// enforces only the 8-character minimum, so this never gates signup.
+  static int passwordStrength(String v) {
+    var s = 0;
+    if (v.length >= 8) s++;
+    if (v.length >= 12) s++;
+    if (RegExp(r'[A-Z]').hasMatch(v) && RegExp(r'[a-z]').hasMatch(v)) {
+      s++;
+    }
+    if (RegExp(r'[0-9]').hasMatch(v) && RegExp(r'[^A-Za-z0-9]').hasMatch(v)) {
+      s++;
+    }
+    return s.clamp(0, 4);
+  }
+
+  static String passwordStrengthLabel(int s) => switch (s) {
+    <= 1 => 'Weak',
+    2 => 'Fair',
+    3 => 'Good',
+    _ => 'Strong',
+  };
 }

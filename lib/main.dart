@@ -5,6 +5,7 @@ import 'core/routing/app_router.dart';
 import 'core/theme/deviq_theme.dart';
 import 'features/app/providers/app_providers.dart';
 import 'features/auth/presentation/auth_controller.dart';
+import 'shared/widgets/deviq_widgets.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -78,23 +79,7 @@ class _Splash extends StatelessWidget {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Container(
-                width: 52,
-                height: 52,
-                decoration: BoxDecoration(
-                  color: theme.colorScheme.primary,
-                  borderRadius: BorderRadius.circular(14),
-                ),
-                alignment: Alignment.center,
-                child: Text(
-                  'D',
-                  style: TextStyle(
-                    color: theme.colorScheme.onPrimary,
-                    fontWeight: FontWeight.w800,
-                    fontSize: 26,
-                  ),
-                ),
-              ),
+              const DevIQLogo(size: 52, radius: 14),
               const SizedBox(height: 14),
               Text(
                 'DevIQ',

@@ -4,6 +4,10 @@ import 'package:deviq/data/repositories/auth_repository.dart';
 import 'package:deviq/features/app/providers/app_providers.dart';
 import 'package:deviq/features/auth/presentation/auth_controller.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:deviq/core/theme/deviq_theme.dart';
+import 'package:deviq/features/auth/presentation/login_screen.dart';
+import 'package:deviq/features/auth/presentation/signup_screen.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 
@@ -146,6 +150,77 @@ void main() {
       await c.read(authProvider.notifier).logout();
       expect(c.read(authProvider).status, AuthStatus.unauthenticated);
       verify(() => repo.logout()).called(1);
+    });
+  });
+
+  _authLayoutTests();
+}
+
+/// Refined-layout coverage: light theme, large system text, narrow
+/// viewport — no overflow, no clipped controls.
+Future<void> _pumpAuth(
+  WidgetTester t,
+  Widget screen, {
+  double width = 360,
+  bool dark = true,
+  double textScale = 1.0,
+}) async {
+  t.view.physicalSize = Size(width * 3, 800 * 3);
+  t.view.devicePixelRatio = 3;
+  addTearDown(() {
+    t.view.resetPhysicalSize();
+    t.view.resetDevicePixelRatio();
+  });
+  await t.pumpWidget(
+    ProviderScope(
+      child: Builder(
+        builder: (context) => MediaQuery(
+          data: MediaQuery.of(context).copyWith(
+            textScaler: TextScaler.linear(textScale),
+          ),
+          child: MaterialApp(
+            theme: DevIQTheme.light(),
+            darkTheme: DevIQTheme.dark(),
+            themeMode: dark ? ThemeMode.dark : ThemeMode.light,
+            home: Scaffold(body: SafeArea(child: screen)),
+          ),
+        ),
+      ),
+    ),
+  );
+  await t.pumpAndSettle(const Duration(milliseconds: 100),
+      EnginePhase.sendSemanticsUpdate, const Duration(seconds: 10));
+}
+
+void _authLayoutTests() {
+  group('auth layout matrix', () {
+    testWidgets('login 360 light', (t) async {
+      await _pumpAuth(t, const LoginScreen(), dark: false);
+      expect(find.text('Welcome back'), findsOneWidget);
+      expect(find.text('Sign In'), findsOneWidget);
+      expect(t.takeException(), isNull);
+    });
+
+    testWidgets('signup 360 light', (t) async {
+      await _pumpAuth(t, const SignupScreen(), dark: false);
+      expect(find.text('Create Account'), findsOneWidget);
+      expect(t.takeException(), isNull);
+    });
+
+    testWidgets('login large text', (t) async {
+      await _pumpAuth(t, const LoginScreen(), textScale: 1.3);
+      expect(find.text('Sign In'), findsOneWidget);
+      expect(t.takeException(), isNull);
+    });
+
+    testWidgets('signup large text + meter', (t) async {
+      await _pumpAuth(t, const SignupScreen(), textScale: 1.3);
+      // Password is the third field (name, email, password, confirm).
+      await t.enterText(
+          find.byType(TextFormField).at(2), 'StrongPass12!');
+      await t.pumpAndSettle();
+      expect(find.text('Strong'), findsOneWidget);
+      expect(t.takeException(), isNull);
     });
   });
 }

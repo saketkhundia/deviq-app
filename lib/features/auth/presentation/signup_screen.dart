@@ -5,7 +5,8 @@ import 'package:go_router/go_router.dart';
 import '../../../core/utils/score_utils.dart';
 import '../../../shared/widgets/deviq_widgets.dart';
 import 'auth_controller.dart';
-import 'login_screen.dart' show AuthWordmark, AuthErrorBanner, PasswordField;
+import 'login_screen.dart'
+    show AuthWordmark, AuthErrorBanner, PasswordField, PasswordStrengthMeter;
 
 class SignupScreen extends ConsumerStatefulWidget {
   const SignupScreen({super.key});
@@ -82,7 +83,7 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
                       ),
                       const SizedBox(height: 6),
                       Text(
-                        'One account for your unified score, history and AI insights.',
+                        'One account for your developer progress, insights, and growth.',
                         style: theme.textTheme.bodyMedium?.copyWith(
                           color: theme.colorScheme.secondary,
                         ),
@@ -119,6 +120,8 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
                             Validators.password(v, isSignup: true),
                         helper: 'Minimum 8 characters.',
                       ),
+                      const SizedBox(height: 8),
+                      PasswordStrengthMeter(controller: _pw),
                       const SizedBox(height: 12),
                       PasswordField(
                         controller: _confirm,
@@ -132,11 +135,22 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
                       // NOTE: no Terms/Privacy links — the product has no
                       // published policy URLs to point at (see report).
                       const SizedBox(height: 4),
-                      if (auth.error != null) ...[
-                        AuthErrorBanner(message: auth.error!),
-                        const SizedBox(height: 12),
-                      ] else
-                        const SizedBox(height: 12),
+                      AnimatedSize(
+                        duration: const Duration(milliseconds: 200),
+                        curve: Curves.easeOut,
+                        child: auth.error != null
+                            ? Column(
+                                crossAxisAlignment: CrossAxisAlignment.stretch,
+                                children: [
+                                  AuthErrorBanner(message: auth.error!),
+                                  const SizedBox(height: 12),
+                                ],
+                              )
+                            : const SizedBox(
+                                width: double.infinity,
+                                height: 12,
+                              ),
+                      ),
                       DevIQButton(
                         label: 'Create Account',
                         loading: auth.working,
