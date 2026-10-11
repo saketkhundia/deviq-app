@@ -3,13 +3,14 @@ import 'package:flutter/material.dart';
 import '../../../../core/theme/deviq_colors.dart';
 import '../../../../core/utils/score_utils.dart';
 import '../../../../data/models/analysis_models.dart';
-import '../../../../shared/widgets/deviq_widgets.dart';
+import '../../../../shared/widgets/liquid_glass.dart';
 import '../../../../shared/widgets/platform_icons.dart';
 import '../../../../shared/widgets/score_ring.dart';
 
-/// Prominent ANALYSIS REPORT card: combined title, platform badges,
-/// classification, green score ring and a data-derived summary.
-/// Never fabricates — every value comes from [result].
+/// ANALYSIS REPORT instrument in liquid glass: combined title,
+/// platform lenses, classification, signal-green score ring and a
+/// data-derived summary. Never fabricates — every value comes from
+/// [result].
 class AnalysisReportCard extends StatelessWidget {
   const AnalysisReportCard({super.key, required this.result});
 
@@ -53,18 +54,19 @@ class AnalysisReportCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final dark = theme.brightness == Brightness.dark;
     final score = result.unifiedScore;
     final present = <DevPlatform>[
       if (result.github != null) DevPlatform.github,
       if (result.leetcode != null) DevPlatform.leetcode,
       if (result.codeforces != null) DevPlatform.codeforces,
     ];
-    return DevIQCard(
+    return LiquidGlass(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const DevIQSectionLabel('ANALYSIS REPORT'),
-          const SizedBox(height: 8),
+          const GlassSectionHeader(index: '01', title: 'Analysis report'),
+          const SizedBox(height: 10),
           Text(
             _title(),
             maxLines: 2,
@@ -79,8 +81,8 @@ class AnalysisReportCard extends StatelessWidget {
             spacing: 6,
             runSpacing: 6,
             children: [
-              for (final p in present) _PlatformBadge(platform: p),
-              _VerdictBadge(score: score),
+              for (final p in present) _PlatformLens(platform: p),
+              _VerdictLens(score: score),
             ],
           ),
           const SizedBox(height: 14),
@@ -90,7 +92,7 @@ class AnalysisReportCard extends StatelessWidget {
               label: 'UNIFIED SCORE',
               diameter: 132,
               duration: const Duration(milliseconds: 1100),
-              color: DevIQColors.success,
+              color: DevIQColors.signalFor(dark),
             ),
           ),
           const SizedBox(height: 12),
@@ -106,7 +108,9 @@ class AnalysisReportCard extends StatelessWidget {
           Container(
             padding: const EdgeInsets.symmetric(vertical: 10),
             decoration: BoxDecoration(
-              border: Border(top: BorderSide(color: theme.dividerColor)),
+              border: Border(
+                top: BorderSide(color: LiquidGlassTokens.edge(dark)),
+              ),
             ),
             child: Row(
               children: [
@@ -119,7 +123,7 @@ class AnalysisReportCard extends StatelessWidget {
                     ),
                   ),
                 if (result.leetcodeScore != null) ...[
-                  _VDivider(theme: theme),
+                  _VLens(theme: theme),
                   Expanded(
                     child: _MiniScore(
                       label: 'LeetCode',
@@ -129,7 +133,7 @@ class AnalysisReportCard extends StatelessWidget {
                   ),
                 ],
                 if (result.codeforcesScore != null) ...[
-                  _VDivider(theme: theme),
+                  _VLens(theme: theme),
                   Expanded(
                     child: _MiniScore(
                       label: 'Codeforces',
@@ -147,8 +151,8 @@ class AnalysisReportCard extends StatelessWidget {
   }
 }
 
-class _VDivider extends StatelessWidget {
-  const _VDivider({required this.theme});
+class _VLens extends StatelessWidget {
+  const _VLens({required this.theme});
 
   final ThemeData theme;
 
@@ -157,12 +161,22 @@ class _VDivider extends StatelessWidget {
     width: 1,
     height: 34,
     margin: const EdgeInsets.symmetric(horizontal: 4),
-    color: theme.dividerColor,
+    decoration: BoxDecoration(
+      gradient: LinearGradient(
+        begin: Alignment.topCenter,
+        end: Alignment.bottomCenter,
+        colors: [
+          theme.dividerColor.withValues(alpha: 0),
+          theme.dividerColor,
+          theme.dividerColor.withValues(alpha: 0),
+        ],
+      ),
+    ),
   );
 }
 
-class _VerdictBadge extends StatelessWidget {
-  const _VerdictBadge({required this.score});
+class _VerdictLens extends StatelessWidget {
+  const _VerdictLens({required this.score});
 
   final double score;
 
@@ -173,8 +187,11 @@ class _VerdictBadge extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
       decoration: BoxDecoration(
         color: color.withValues(alpha: 0.12),
-        borderRadius: BorderRadius.circular(6),
-        border: Border.all(color: color.withValues(alpha: 0.35)),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: color.withValues(alpha: 0.45)),
+        boxShadow: [
+          BoxShadow(color: color.withValues(alpha: 0.25), blurRadius: 8),
+        ],
       ),
       child: Text(
         ScoreUtils.verdict(score),
@@ -188,21 +205,22 @@ class _VerdictBadge extends StatelessWidget {
   }
 }
 
-/// Tinted platform badge matching the web reference.
-class _PlatformBadge extends StatelessWidget {
-  const _PlatformBadge({required this.platform});
+/// Frosted platform lens in the platform's semantic color.
+class _PlatformLens extends StatelessWidget {
+  const _PlatformLens({required this.platform});
 
   final DevPlatform platform;
 
   @override
   Widget build(BuildContext context) {
+    final dark = Theme.of(context).brightness == Brightness.dark;
     final accent = PlatformIcons.accentOf(platform);
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
       decoration: BoxDecoration(
-        color: accent.withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(6),
-        border: Border.all(color: accent.withValues(alpha: 0.35)),
+        color: accent.withValues(alpha: dark ? 0.14 : 0.1),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: accent.withValues(alpha: 0.5)),
       ),
       child: Text(
         PlatformIcons.labelOf(platform),

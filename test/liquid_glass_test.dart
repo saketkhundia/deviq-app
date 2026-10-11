@@ -24,19 +24,17 @@ void _setSurface(WidgetTester t, double width, [double height = 1600]) {
   addTearDown(t.view.reset);
 }
 
+void _noop() {}
+
 void main() {
   group('liquid glass material', () {
     testWidgets('panel refracts with real backdrop blur', (t) async {
       _setSurface(t, 375);
-      await t.pumpWidget(
-        _wrap(const LiquidGlass(child: Text('lens'))),
-      );
+      await t.pumpWidget(_wrap(const LiquidGlass(child: Text('lens'))));
       await t.pump();
       expect(t.takeException(), isNull);
       expect(find.text('lens'), findsOneWidget);
-      final filters = find.byWidgetPredicate(
-        (w) => w is BackdropFilter,
-      );
+      final filters = find.byWidgetPredicate((w) => w is BackdropFilter);
       expect(filters, findsWidgets);
     });
 
@@ -176,14 +174,34 @@ void main() {
       expect(t.takeException(), isNull);
     });
 
-    testWidgets('press physics respect reduced motion', (t) async {
+    testWidgets('inline ghost survives unbounded Row width', (t) async {
       _setSurface(t, 375);
+      await t.pumpWidget(
+        _wrap(
+          Row(
+            children: [
+              const Expanded(child: TextField()),
+              const SizedBox(width: 8),
+              GlassGhostButton(
+                label: 'Send ↵',
+                expanded: false,
+                height: 42,
+                onTap: _noop,
+              ),
+            ],
+          ),
+        ),
+      );
+      await t.pump();
+      expect(t.takeException(), isNull);
+      expect(find.text('Send ↵'), findsOneWidget);
+    });
+
+    testWidgets('press physics respect reduced motion', (t) async {      _setSurface(t, 375);
       await t.pumpWidget(
         MediaQuery(
           data: const MediaQueryData(disableAnimations: true),
-          child: _wrap(
-            GlassGhostButton(label: 'Try Playground', onTap: () {}),
-          ),
+          child: _wrap(GlassGhostButton(label: 'Try Playground', onTap: () {})),
         ),
       );
       await t.pump();

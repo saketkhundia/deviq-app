@@ -47,16 +47,8 @@ GoRouter buildRouter({
         StatefulShellBranch(
           routes: [
             GoRoute(
-              path: '/analyze',
-              pageBuilder: (c, s) => _page(const AnalyzeScreen(), s),
-            ),
-          ],
-        ),
-        StatefulShellBranch(
-          routes: [
-            GoRoute(
-              path: '/compare',
-              pageBuilder: (c, s) => _page(const CompareScreen(), s),
+              path: '/interview',
+              pageBuilder: (c, s) => _page(const InterviewScreen(), s),
             ),
           ],
         ),
@@ -68,12 +60,35 @@ GoRouter buildRouter({
             ),
           ],
         ),
+        StatefulShellBranch(
+          routes: [
+            GoRoute(
+              path: '/review',
+              pageBuilder: (c, s) => _page(const ReviewScreen(), s),
+            ),
+          ],
+        ),
       ],
     ),
     GoRoute(
-      path: '/interview',
+      path: '/analyze',
       pageBuilder: (c, s) =>
-          _page(const DevIQSubPage(child: InterviewScreen()), s),
+          _page(const DevIQSubPage(child: AnalyzeScreen()), s),
+    ),
+    GoRoute(
+      path: '/compare',
+      pageBuilder: (c, s) =>
+          _page(const DevIQSubPage(child: CompareScreen()), s),
+    ),
+    GoRoute(
+      path: '/history',
+      pageBuilder: (c, s) =>
+          _page(const DevIQSubPage(child: HistoryScreen()), s),
+    ),
+    GoRoute(
+      path: '/profile',
+      pageBuilder: (c, s) =>
+          _page(const DevIQSubPage(child: ProfileScreen()), s),
     ),
     GoRoute(
       path: '/ai',
@@ -86,21 +101,6 @@ GoRouter buildRouter({
     GoRoute(
       path: '/signup',
       pageBuilder: (c, s) => _page(const SignupScreen(), s),
-    ),
-    GoRoute(
-      path: '/review',
-      pageBuilder: (c, s) =>
-          _page(const DevIQSubPage(child: ReviewScreen()), s),
-    ),
-    GoRoute(
-      path: '/profile',
-      pageBuilder: (c, s) =>
-          _page(const DevIQSubPage(child: ProfileScreen()), s),
-    ),
-    GoRoute(
-      path: '/history',
-      pageBuilder: (c, s) =>
-          _page(const DevIQSubPage(child: HistoryScreen()), s),
     ),
     GoRoute(
       path: '/settings',

@@ -10,6 +10,7 @@ import 'package:deviq/features/analyze/presentation/analyze_screen.dart';
 import 'package:deviq/features/analyze/presentation/insights_controller.dart';
 import 'package:deviq/features/analyze/presentation/widgets/share_card.dart';
 import 'package:deviq/features/app/providers/app_providers.dart';
+import 'package:deviq/shared/widgets/liquid_glass.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -306,8 +307,27 @@ void main() {
       expect(t.takeException(), isNull);
     });
 
-    testWidgets('backend failure shows human error, no red screen', (t) async {
+    testWidgets('success surfaces are liquid glass lenses', (t) async {
       when(
+        () => repo.analyze(
+          github: any(named: 'github'),
+          leetcode: any(named: 'leetcode'),
+          codeforces: any(named: 'codeforces'),
+        ),
+      ).thenAnswer((_) async => _canned());
+      await pump(t);
+      await _runAnalysis(t);
+      // Every instrument floats on refractive glass and the form
+      // action is a signal-glass button — no flat slabs remain.
+      // (Ghost actions live in gated/overflow states covered
+      // alongside Home in liquid_glass_test.)
+      expect(find.byType(LiquidGlass), findsWidgets);
+      expect(find.byType(GlassPrimaryButton), findsWidgets);
+      expect(find.byType(BackdropFilter), findsWidgets);
+      expect(t.takeException(), isNull);
+    });
+
+    testWidgets('backend failure shows human error, no red screen', (t) async {      when(
         () => repo.analyze(
           github: any(named: 'github'),
           leetcode: any(named: 'leetcode'),

@@ -13,6 +13,7 @@ import '../../../data/models/ai_models.dart';
 import '../../../shared/layout/responsive.dart';
 import '../../../shared/widgets/code_editor.dart';
 import '../../../shared/widgets/deviq_widgets.dart';
+import '../../../shared/widgets/liquid_glass.dart';
 import '../../../shared/widgets/score_ring.dart';
 import '../../app/providers/feature_controllers.dart';
 import '../../auth/presentation/auth_controller.dart';
@@ -160,7 +161,7 @@ class _ReviewScreenState extends ConsumerState<ReviewScreen> {
     final authed = ref.watch(authProvider).status == AuthStatus.authenticated;
     final loading = state.status == ReviewStatus.loading;
     return DevIQPage(
-      reserveNav: false,
+      reserveNav: true,
       controller: _scroll,
       children: [
         Column(key: _topKey, children: const [SizedBox.shrink()]),
@@ -222,10 +223,10 @@ class _ReviewScreenState extends ConsumerState<ReviewScreen> {
             ),
             const SizedBox(height: 16),
             Center(
-              child: DevIQSecondaryButton(
+              child: GlassGhostButton(
                 label: 'Go to review ↓',
                 expanded: false,
-                onPressed: _scrollTop,
+                onTap: _scrollTop,
               ),
             ),
           ],
@@ -267,8 +268,9 @@ class _EditorFrame extends StatelessWidget {
         ? (PlaygroundLanguages.byId(detectLanguageId(code.text)).highlightId ??
               'plaintext')
         : (PlaygroundLanguages.byId(language).highlightId ?? 'plaintext');
-    return DevIQCard(
+    return LiquidGlass(
       padding: EdgeInsets.zero,
+      blur: 18,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -331,7 +333,7 @@ class _EditorFrame extends StatelessWidget {
                 if (onReview != null)
                   SizedBox(
                     width: 150,
-                    child: DevIQButton(
+                    child: GlassPrimaryButton(
                       label: reviewing
                           ? 'Reviewing… ${elapsed}s'
                           : 'Review Code',
@@ -391,9 +393,25 @@ class _LanguageMenu extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 9),
         decoration: BoxDecoration(
-          color: theme.cardColor,
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: Theme.of(context).brightness == Brightness.dark
+                ? [
+                    Colors.white.withValues(alpha: 0.12),
+                    Colors.white.withValues(alpha: 0.04),
+                  ]
+                : [
+                    Colors.white.withValues(alpha: 0.8),
+                    Colors.white.withValues(alpha: 0.5),
+                  ],
+          ),
           borderRadius: BorderRadius.circular(DevIQRadius.button),
-          border: Border.all(color: theme.dividerColor),
+          border: Border.all(
+            color: LiquidGlassTokens.edge(
+              Theme.of(context).brightness == Brightness.dark,
+            ),
+          ),
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
@@ -430,14 +448,27 @@ class _GhostBtn extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    return InkWell(
+    final dark = theme.brightness == Brightness.dark;
+    return GestureDetector(
       onTap: onTap,
-      borderRadius: BorderRadius.circular(DevIQRadius.button),
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 9),
         decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: dark
+                ? [
+                    Colors.white.withValues(alpha: 0.12),
+                    Colors.white.withValues(alpha: 0.04),
+                  ]
+                : [
+                    Colors.white.withValues(alpha: 0.8),
+                    Colors.white.withValues(alpha: 0.5),
+                  ],
+          ),
           borderRadius: BorderRadius.circular(DevIQRadius.button),
-          border: Border.all(color: theme.dividerColor),
+          border: Border.all(color: LiquidGlassTokens.edge(dark)),
         ),
         child: Text(
           label,
@@ -462,7 +493,8 @@ class _ReviewingCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final label = PlaygroundLanguages.byId(language).label.toLowerCase();
-    return DevIQCard(
+    return LiquidGlass(
+      blur: 16,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -473,14 +505,10 @@ class _ReviewingCard extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 10),
-          ClipRRect(
-            borderRadius: BorderRadius.circular(4),
-            child: LinearProgressIndicator(
-              value: (elapsed / 60).clamp(0.05, 0.97),
-              minHeight: 4,
-              backgroundColor: theme.dividerColor,
-              valueColor: const AlwaysStoppedAnimation(DevIQColors.github),
-            ),
+          GlassBar(
+            value: (elapsed / 60).clamp(0.05, 0.97),
+            color: DevIQColors.github,
+            height: 5,
           ),
         ],
       ),
@@ -506,10 +534,10 @@ class _ReviewError extends StatelessWidget {
       children: [
         ErrorState(message: mapped),
         const SizedBox(height: 8),
-        DevIQSecondaryButton(
+        GlassGhostButton(
           label: 'Sign in again',
           icon: Icons.login,
-          onPressed: () => context.push('/login'),
+          onTap: () => context.push('/login'),
         ),
       ],
     );
@@ -674,7 +702,8 @@ class _SummaryCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    return DevIQCard(
+    return LiquidGlass(
+      blur: 16,
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -771,7 +800,8 @@ class _ComplexityCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    return DevIQCard(
+    return LiquidGlass(
+      blur: 14,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -824,8 +854,9 @@ class _OptimizePanel extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    return DevIQCard(
+    return LiquidGlass(
       padding: EdgeInsets.zero,
+      blur: 18,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -836,9 +867,15 @@ class _OptimizePanel extends StatelessWidget {
                 Container(
                   width: 8,
                   height: 8,
-                  decoration: const BoxDecoration(
+                  decoration: BoxDecoration(
                     color: DevIQColors.codeforces,
                     shape: BoxShape.circle,
+                    boxShadow: [
+                      BoxShadow(
+                        color: DevIQColors.codeforces.withValues(alpha: 0.7),
+                        blurRadius: 6,
+                      ),
+                    ],
                   ),
                 ),
                 const SizedBox(width: 8),
@@ -924,27 +961,48 @@ class _PurpleButton extends StatelessWidget {
   final VoidCallback? onTap;
 
   @override
-  Widget build(BuildContext context) => InkWell(
-    onTap: onTap,
-    borderRadius: BorderRadius.circular(DevIQRadius.button),
-    child: Container(
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-      decoration: BoxDecoration(
-        color: DevIQColors.codeforces,
-        borderRadius: BorderRadius.circular(DevIQRadius.button),
-      ),
-      child: Text(
-        label,
-        maxLines: 1,
-        overflow: TextOverflow.ellipsis,
-        style: const TextStyle(
-          color: Colors.white,
-          fontWeight: FontWeight.w700,
-          fontSize: 13,
+  Widget build(BuildContext context) {
+    final dark = Theme.of(context).brightness == Brightness.dark;
+    return Opacity(
+      opacity: onTap == null ? 0.5 : 1,
+      child: GestureDetector(
+        onTap: onTap,
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+              colors: [
+                DevIQColors.codeforces.withValues(alpha: dark ? 0.4 : 0.3),
+                DevIQColors.codeforces.withValues(alpha: dark ? 0.2 : 0.15),
+              ],
+            ),
+            borderRadius: BorderRadius.circular(DevIQRadius.button),
+            border: Border.all(
+              color: DevIQColors.codeforces.withValues(alpha: 0.55),
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: DevIQColors.codeforces.withValues(alpha: 0.35),
+                blurRadius: 12,
+              ),
+            ],
+          ),
+          child: Text(
+            label,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: const TextStyle(
+              color: Colors.white,
+              fontWeight: FontWeight.w700,
+              fontSize: 13,
+            ),
+          ),
         ),
       ),
-    ),
-  );
+    );
+  }
 }
 
 /// Grouped findings panel: dotted header with count, divider, then items
@@ -967,8 +1025,10 @@ class _IssueGroup extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    return DevIQCard(
+    final dark = theme.brightness == Brightness.dark;
+    return LiquidGlass(
       padding: EdgeInsets.zero,
+      blur: 18,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -979,7 +1039,16 @@ class _IssueGroup extends StatelessWidget {
                 Container(
                   width: 8,
                   height: 8,
-                  decoration: BoxDecoration(color: dot, shape: BoxShape.circle),
+                  decoration: BoxDecoration(
+                    color: dot,
+                    shape: BoxShape.circle,
+                    boxShadow: [
+                      BoxShadow(
+                        color: dot.withValues(alpha: 0.7),
+                        blurRadius: 6,
+                      ),
+                    ],
+                  ),
                 ),
                 const SizedBox(width: 8),
                 Text(
@@ -996,8 +1065,11 @@ class _IssueGroup extends StatelessWidget {
                     vertical: 2,
                   ),
                   decoration: BoxDecoration(
+                    color: LiquidGlassTokens.inset(dark),
                     borderRadius: BorderRadius.circular(99),
-                    border: Border.all(color: theme.dividerColor),
+                    border: Border.all(
+                      color: LiquidGlassTokens.edge(dark),
+                    ),
                   ),
                   child: Text(
                     '$count',
@@ -1046,13 +1118,15 @@ class _BugCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final dark = theme.brightness == Brightness.dark;
     final sev = severityColor(issue.severity);
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: theme.dividerColor),
+        color: LiquidGlassTokens.inset(dark),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: LiquidGlassTokens.edge(dark)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -1065,9 +1139,15 @@ class _BugCard extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                 decoration: BoxDecoration(
-                  color: sev.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(6),
-                  border: Border.all(color: sev.withValues(alpha: 0.35)),
+                  color: sev.withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: sev.withValues(alpha: 0.45)),
+                  boxShadow: [
+                    BoxShadow(
+                      color: sev.withValues(alpha: 0.25),
+                      blurRadius: 8,
+                    ),
+                  ],
                 ),
                 child: Text(
                   issue.severity.isEmpty
@@ -1141,11 +1221,17 @@ class _BugCard extends StatelessWidget {
               width: double.infinity,
               padding: const EdgeInsets.all(10),
               decoration: BoxDecoration(
-                color: DevIQColors.success.withValues(alpha: 0.08),
-                borderRadius: BorderRadius.circular(8),
+                color: DevIQColors.success.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(10),
                 border: Border.all(
-                  color: DevIQColors.success.withValues(alpha: 0.3),
+                  color: DevIQColors.success.withValues(alpha: 0.45),
                 ),
+                boxShadow: [
+                  BoxShadow(
+                    color: DevIQColors.success.withValues(alpha: 0.2),
+                    blurRadius: 10,
+                  ),
+                ],
               ),
               child: SelectableText(
                 'Fix: ${issue.fix}',
@@ -1204,12 +1290,14 @@ class _QualityCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final dark = theme.brightness == Brightness.dark;
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: theme.dividerColor),
+        color: LiquidGlassTokens.inset(dark),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: LiquidGlassTokens.edge(dark)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -1250,8 +1338,9 @@ class _FixedCodePanel extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    return DevIQCard(
+    return LiquidGlass(
       padding: EdgeInsets.zero,
+      blur: 18,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -1300,7 +1389,7 @@ class _FixedCodePanel extends StatelessWidget {
                 Row(
                   children: [
                     Expanded(
-                      child: DevIQButton(
+                      child: GlassPrimaryButton(
                         label: 'Load into editor',
                         expanded: true,
                         onPressed: result.fixedCode.isEmpty

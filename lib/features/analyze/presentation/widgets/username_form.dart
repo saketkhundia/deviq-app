@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/utils/score_utils.dart';
 import '../../../../shared/widgets/deviq_widgets.dart';
+import '../../../../shared/widgets/liquid_glass.dart';
 import '../../../../shared/widgets/platform_icons.dart';
 import '../../../app/providers/app_providers.dart';
 
@@ -58,7 +59,7 @@ class _UsernameFormState extends ConsumerState<UsernameForm> {
   @override
   Widget build(BuildContext context) {
     _prefill();
-    return DevIQCard(
+    return LiquidGlass(
       child: Form(
         key: _form,
         child: Column(
@@ -95,7 +96,7 @@ class _UsernameFormState extends ConsumerState<UsernameForm> {
               validator: (v) => Validators.username(v, required: false),
             ),
             const SizedBox(height: 16),
-            DevIQButton(
+            GlassPrimaryButton(
               label: 'Run Analysis',
               icon: Icons.play_arrow,
               loading: widget.loading,

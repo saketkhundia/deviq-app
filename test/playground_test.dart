@@ -3,6 +3,7 @@ import 'package:deviq/data/models/ai_models.dart';
 import 'package:deviq/data/repositories/execution_repository.dart';
 import 'package:deviq/features/app/providers/app_providers.dart';
 import 'package:deviq/features/playground/presentation/playground_screen.dart';
+import 'package:deviq/shared/widgets/liquid_glass.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -75,6 +76,21 @@ void main() {
     expect(find.textContaining('Hello from DevIQ Playground!'), findsWidgets);
     expect(find.text('SUCCESS'), findsOneWidget);
     expect(find.textContaining('exit 0'), findsOneWidget);
+    // Terminal input pill keeps prompt, field and Send on one baseline.
+    expect(find.text('Send ↵'), findsOneWidget);
+    expect(find.text('>'), findsOneWidget);
+    // Send is a compact inline chip hugging the text line.
+    expect(
+      find.byWidgetPredicate(
+        (w) => w is GlassGhostButton && w.height == 30 && w.fontSize == 13,
+      ),
+      findsOneWidget,
+    );
+    // Same liquid-glass material as Home, Analyze and Compare.
+    expect(find.byType(LiquidGlass), findsWidgets);
+    expect(find.byType(GlassPrimaryButton), findsOneWidget);
+    expect(find.byType(GlassGhostButton), findsWidgets);
+    expect(find.byType(BackdropFilter), findsWidgets);
     expect(t.takeException(), isNull);
   });
 }

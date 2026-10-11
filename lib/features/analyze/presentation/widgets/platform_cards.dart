@@ -4,7 +4,7 @@ import '../../../../core/theme/deviq_colors.dart';
 import '../../../../core/utils/score_utils.dart';
 import '../../../../data/models/analysis_models.dart';
 import '../../../../shared/widgets/charts.dart';
-import '../../../../shared/widgets/deviq_widgets.dart';
+import '../../../../shared/widgets/liquid_glass.dart';
 import '../../../../shared/widgets/platform_icons.dart';
 
 /// Platform cards mirroring the web reference: brand header with username
@@ -20,8 +20,9 @@ class GithubPlatformCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final g = result.github!;
-    return DevIQCard(
+    return LiquidGlass(
       padding: EdgeInsets.zero,
+      blur: 18,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -83,8 +84,9 @@ class LeetcodePlatformCard extends StatelessWidget {
     final total = l.totalSolved > 0
         ? l.totalSolved
         : l.easySolved + l.mediumSolved + l.hardSolved;
-    return DevIQCard(
+    return LiquidGlass(
       padding: EdgeInsets.zero,
+      blur: 18,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -163,8 +165,9 @@ class CodeforcesPlatformCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final c = result.codeforces!;
     final rc = DevIQColors.cfRankColor(c.rank);
-    return DevIQCard(
+    return LiquidGlass(
       padding: EdgeInsets.zero,
+      blur: 18,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -359,13 +362,17 @@ class _DifficultyTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final dark = theme.brightness == Brightness.dark;
     return Expanded(
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 12),
         decoration: BoxDecoration(
-          color: color.withValues(alpha: 0.08),
-          borderRadius: BorderRadius.circular(9),
-          border: Border.all(color: color.withValues(alpha: 0.3)),
+          color: LiquidGlassTokens.inset(dark),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: color.withValues(alpha: 0.4)),
+          boxShadow: [
+            BoxShadow(color: color.withValues(alpha: 0.18), blurRadius: 10),
+          ],
         ),
         child: Column(
           children: [

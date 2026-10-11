@@ -3,7 +3,7 @@ import 'package:intl/intl.dart';
 
 import '../../../../core/utils/score_utils.dart';
 import '../../../../data/models/platform_models.dart';
-import '../../../../shared/widgets/deviq_widgets.dart';
+import '../../../../shared/widgets/liquid_glass.dart';
 
 /// Contribution activity: totals, streaks and a responsive heatmap with
 /// month + weekday labels and an intensity legend. The heatmap scrolls
@@ -16,8 +16,9 @@ class ActivitySection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    return DevIQCard(
+    return LiquidGlass(
       padding: EdgeInsets.zero,
+      blur: 18,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [

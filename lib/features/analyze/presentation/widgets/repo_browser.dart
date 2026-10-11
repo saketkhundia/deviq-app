@@ -7,6 +7,7 @@ import '../../../../core/utils/score_utils.dart';
 import '../../../../data/models/github_models.dart';
 import '../../../../data/models/repo_models.dart';
 import '../../../../shared/widgets/deviq_widgets.dart';
+import '../../../../shared/widgets/liquid_glass.dart';
 import '../../../app/providers/app_providers.dart';
 
 enum _Sort { stars, updated, name }
@@ -72,8 +73,9 @@ class _RepositoryBrowserState extends ConsumerState<RepositoryBrowser> {
       ..sort((a, b) => b.value.compareTo(a.value));
     final list = _filtered();
     final visible = list.take(_shown).toList();
-    return DevIQCard(
+    return LiquidGlass(
       padding: EdgeInsets.zero,
+      blur: 18,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -204,10 +206,10 @@ class _RepositoryBrowserState extends ConsumerState<RepositoryBrowser> {
                   ),
                 if (list.length > visible.length) ...[
                   const SizedBox(height: 10),
-                  DevIQSecondaryButton(
+                  GlassGhostButton(
                     label: 'Show more (${list.length - visible.length} left)',
                     icon: Icons.expand_more,
-                    onPressed: () => setState(
+                    onTap: () => setState(
                       () => _shown = (_shown + 18).clamp(0, list.length),
                     ),
                   ),
@@ -282,9 +284,15 @@ class _SortMenu extends StatelessWidget {
         width: double.infinity,
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
         decoration: BoxDecoration(
-          color: theme.cardColor,
+          color: LiquidGlassTokens.inset(
+            Theme.of(context).brightness == Brightness.dark,
+          ),
           borderRadius: BorderRadius.circular(DevIQRadius.button),
-          border: Border.all(color: theme.dividerColor),
+          border: Border.all(
+            color: LiquidGlassTokens.edge(
+              Theme.of(context).brightness == Brightness.dark,
+            ),
+          ),
         ),
         child: Row(
           children: [
@@ -327,18 +335,34 @@ class _LangChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final dark = theme.brightness == Brightness.dark;
     return Padding(
       padding: const EdgeInsets.only(right: 8),
-      child: InkWell(
+      child: GestureDetector(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(DevIQRadius.pill),
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
           decoration: BoxDecoration(
-            color: selected ? theme.colorScheme.primary : Colors.transparent,
+            gradient: selected
+                ? LinearGradient(
+                    colors: [
+                      theme.colorScheme.primary,
+                      theme.colorScheme.primary,
+                    ],
+                  )
+                : LinearGradient(
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                    colors: [
+                      Colors.white.withValues(alpha: dark ? 0.12 : 0.7),
+                      Colors.white.withValues(alpha: dark ? 0.04 : 0.4),
+                    ],
+                  ),
             borderRadius: BorderRadius.circular(DevIQRadius.pill),
             border: Border.all(
-              color: selected ? theme.colorScheme.primary : theme.dividerColor,
+              color: selected
+                  ? theme.colorScheme.primary
+                  : LiquidGlassTokens.edge(dark),
             ),
           ),
           child: Row(
@@ -447,8 +471,10 @@ class _RepositoryCardState extends ConsumerState<RepositoryCard> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final r = widget.repo;
-    return DevIQCard(
+    return LiquidGlass(
       padding: const EdgeInsets.all(12),
+      borderRadius: 16,
+      blur: 12,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -458,11 +484,24 @@ class _RepositoryCardState extends ConsumerState<RepositoryCard> {
                 width: 34,
                 height: 34,
                 decoration: BoxDecoration(
-                  color: DevIQColors.github.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(9),
-                  border: Border.all(
-                    color: DevIQColors.github.withValues(alpha: 0.3),
+                  gradient: LinearGradient(
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                    colors: [
+                      DevIQColors.github.withValues(alpha: 0.22),
+                      DevIQColors.github.withValues(alpha: 0.08),
+                    ],
                   ),
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(
+                    color: DevIQColors.github.withValues(alpha: 0.45),
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: DevIQColors.github.withValues(alpha: 0.25),
+                      blurRadius: 10,
+                    ),
+                  ],
                 ),
                 child: const Icon(
                   Icons.book_outlined,
@@ -656,12 +695,14 @@ class _TreeBodyState extends State<_TreeBody> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final dark = theme.brightness == Brightness.dark;
     return Container(
       height: 300,
       padding: const EdgeInsets.all(8),
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: theme.dividerColor),
+        color: LiquidGlassTokens.inset(dark),
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: LiquidGlassTokens.edge(dark)),
       ),
       child: Builder(
         builder: (context) {

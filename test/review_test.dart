@@ -6,6 +6,7 @@ import 'package:deviq/data/repositories/auth_repository.dart';
 import 'package:deviq/features/app/providers/app_providers.dart';
 import 'package:deviq/features/auth/presentation/auth_controller.dart';
 import 'package:deviq/features/review/presentation/review_screen.dart';
+import 'package:deviq/shared/widgets/liquid_glass.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -185,6 +186,10 @@ void main() {
 
     expect(codeContains('console.log'), isTrue);
     expect(codeContains('Hello World'), isTrue);
+    // Same liquid-glass material as the other workspace screens.
+    expect(find.byType(LiquidGlass), findsWidgets);
+    expect(find.byType(GlassPrimaryButton), findsWidgets);
+    expect(find.byType(BackdropFilter), findsWidgets);
     expect(t.takeException(), isNull);
   });
 

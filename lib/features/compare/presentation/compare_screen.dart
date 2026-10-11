@@ -6,13 +6,15 @@ import '../../../core/utils/score_utils.dart';
 import '../../../data/models/analysis_models.dart';
 import '../../../shared/layout/responsive.dart';
 import '../../../shared/widgets/deviq_widgets.dart';
+import '../../../shared/widgets/liquid_glass.dart';
 import '../../../shared/widgets/platform_icons.dart';
 import '../../../shared/widgets/score_ring.dart';
 import '../../app/providers/feature_controllers.dart';
 
-/// Head-to-head comparison mirroring the web reference: stacked
-/// developer cards on mobile, white Compare button, then a single
-/// result card with the face-off, win pills and dual-bar metric rows.
+/// Head-to-head comparison in liquid glass: frosted developer lenses
+/// on mobile, signal-glass Compare action, then one refractive result
+/// lens with the face-off, win chips and dual-glow metric rows.
+/// Logic and copy are unchanged — only the material is new.
 class CompareScreen extends ConsumerStatefulWidget {
   const CompareScreen({super.key});
 
@@ -54,7 +56,7 @@ class _CompareScreenState extends ConsumerState<CompareScreen> {
     final theme = Theme.of(context);
     final state = ref.watch(compareProvider);
     return DevIQPage(
-      reserveNav: true,
+      reserveNav: false,
       children: [
         const DevIQSectionLabel('HEAD-TO-HEAD'),
         const SizedBox(height: 10),
@@ -79,8 +81,9 @@ class _CompareScreenState extends ConsumerState<CompareScreen> {
           ),
         ),
         const SizedBox(height: 14),
-        DevIQButton(
+        GlassPrimaryButton(
           label: 'Compare',
+          icon: Icons.compare_arrows_rounded,
           loading: state.status == CompareStatus.loading,
           onPressed: _run,
         ),
@@ -113,8 +116,8 @@ class _CompareScreenState extends ConsumerState<CompareScreen> {
   }
 }
 
-/// Developer input card: header band with divider, brand mini-labels
-/// above plain username fields.
+/// Developer input lens: frosted header band, brand mini-labels above
+/// plain username fields.
 class _DevCard extends StatelessWidget {
   const _DevCard({
     required this.title,
@@ -131,8 +134,9 @@ class _DevCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    return DevIQCard(
+    return LiquidGlass(
       padding: EdgeInsets.zero,
+      blur: 18,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -259,8 +263,9 @@ class _CompareResults extends StatelessWidget {
       }
     }
     final tied = sa == sb;
-    return DevIQCard(
+    return LiquidGlass(
       padding: EdgeInsets.zero,
+      blur: 18,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -307,11 +312,11 @@ class _CompareResults extends StatelessWidget {
               spacing: 8,
               runSpacing: 8,
               children: [
-                _WinPill(
+                _WinLens(
                   text: '$na: $winsA win${winsA == 1 ? '' : 's'}',
                   color: _aColor,
                 ),
-                _WinPill(
+                _WinLens(
                   text: '$nb: $winsB win${winsB == 1 ? '' : 's'}',
                   color: _bColor,
                 ),
@@ -437,14 +442,14 @@ class _FaceOffSide extends StatelessWidget {
           duration: const Duration(milliseconds: 1100),
         ),
         const SizedBox(height: 8),
-        _VerdictChip(score: score),
+        _VerdictLens(score: score),
       ],
     );
   }
 }
 
-class _VerdictChip extends StatelessWidget {
-  const _VerdictChip({required this.score});
+class _VerdictLens extends StatelessWidget {
+  const _VerdictLens({required this.score});
 
   final double score;
 
@@ -454,9 +459,12 @@ class _VerdictChip extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
       decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(6),
-        border: Border.all(color: color.withValues(alpha: 0.35)),
+        color: color.withValues(alpha: 0.12),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: color.withValues(alpha: 0.45)),
+        boxShadow: [
+          BoxShadow(color: color.withValues(alpha: 0.25), blurRadius: 8),
+        ],
       ),
       child: Text(
         ScoreUtils.verdict(score),
@@ -470,8 +478,8 @@ class _VerdictChip extends StatelessWidget {
   }
 }
 
-class _WinPill extends StatelessWidget {
-  const _WinPill({required this.text, required this.color});
+class _WinLens extends StatelessWidget {
+  const _WinLens({required this.text, required this.color});
 
   final String text;
   final Color color;
@@ -480,9 +488,12 @@ class _WinPill extends StatelessWidget {
   Widget build(BuildContext context) => Container(
     padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
     decoration: BoxDecoration(
-      color: color.withValues(alpha: 0.1),
-      borderRadius: BorderRadius.circular(6),
-      border: Border.all(color: color.withValues(alpha: 0.35)),
+      color: color.withValues(alpha: 0.12),
+      borderRadius: BorderRadius.circular(8),
+      border: Border.all(color: color.withValues(alpha: 0.45)),
+      boxShadow: [
+        BoxShadow(color: color.withValues(alpha: 0.22), blurRadius: 8),
+      ],
     ),
     child: Text(
       text,
@@ -491,7 +502,7 @@ class _WinPill extends StatelessWidget {
   );
 }
 
-/// Metric row: muted label, "A ← vs B" values, dual proportional bars
+/// Metric row: muted label, "A ← vs B" values, dual glowing bars
 /// relative to the row max. Missing sides render "—" with no bars.
 class _MetricRow extends StatelessWidget {
   const _MetricRow({required this.row, required this.last});
@@ -502,6 +513,7 @@ class _MetricRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final dark = theme.brightness == Brightness.dark;
     final aWins = row.a != null && (row.b == null || row.a! > row.b!);
     final bWins = row.b != null && (row.a == null || row.b! > row.a!);
     final max = [row.a ?? 0, row.b ?? 0].fold<num>(0, (m, v) => v > m ? v : m);
@@ -511,7 +523,7 @@ class _MetricRow extends StatelessWidget {
         border: Border(
           bottom: last
               ? BorderSide.none
-              : BorderSide(color: theme.dividerColor),
+              : BorderSide(color: LiquidGlassTokens.edge(dark)),
         ),
       ),
       child: Column(
@@ -576,28 +588,16 @@ class _MetricRow extends StatelessWidget {
           ),
           if (max > 0) ...[
             const SizedBox(height: 7),
-            ClipRRect(
-              borderRadius: BorderRadius.circular(2),
-              child: LinearProgressIndicator(
-                value: ((row.a ?? 0) / max).clamp(0, 1).toDouble(),
-                minHeight: 3,
-                backgroundColor: theme.dividerColor.withValues(alpha: 0.4),
-                valueColor: const AlwaysStoppedAnimation(
-                  _CompareResults._aColor,
-                ),
-              ),
+            GlassBar(
+              value: ((row.a ?? 0) / max).clamp(0, 1).toDouble(),
+              color: _CompareResults._aColor,
+              height: 4,
             ),
-            const SizedBox(height: 3),
-            ClipRRect(
-              borderRadius: BorderRadius.circular(2),
-              child: LinearProgressIndicator(
-                value: ((row.b ?? 0) / max).clamp(0, 1).toDouble(),
-                minHeight: 3,
-                backgroundColor: theme.dividerColor.withValues(alpha: 0.4),
-                valueColor: const AlwaysStoppedAnimation(
-                  _CompareResults._bColor,
-                ),
-              ),
+            const SizedBox(height: 4),
+            GlassBar(
+              value: ((row.b ?? 0) / max).clamp(0, 1).toDouble(),
+              color: _CompareResults._bColor,
+              height: 4,
             ),
           ],
         ],

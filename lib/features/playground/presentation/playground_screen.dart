@@ -11,6 +11,7 @@ import '../../../core/theme/deviq_colors.dart';
 import '../../../shared/layout/responsive.dart';
 import '../../../shared/widgets/code_editor.dart';
 import '../../../shared/widgets/deviq_widgets.dart';
+import '../../../shared/widgets/liquid_glass.dart';
 import '../../app/providers/feature_controllers.dart';
 
 /// Interactive code playground mirroring the web reference: hero,
@@ -173,7 +174,7 @@ class _PlaygroundScreenState extends ConsumerState<PlaygroundScreen> {
     final mono = GoogleFonts.jetBrainsMono(fontSize: 12);
 
     return DevIQPage(
-      reserveNav: true,
+      reserveNav: false,
       children: [
         const DevIQSectionLabel('INTERACTIVE CODE PLAYGROUND'),
         const SizedBox(height: 10),
@@ -247,32 +248,35 @@ class _PlaygroundScreenState extends ConsumerState<PlaygroundScreen> {
         Row(
           children: [
             Expanded(
-              child: DevIQSecondaryButton(
+              child: GlassGhostButton(
                 label: 'Copy',
                 icon: Icons.copy_outlined,
-                onPressed: _copyCode,
+                height: 44,
+                onTap: _copyCode,
               ),
             ),
             const SizedBox(width: 8),
             Expanded(
-              child: DevIQSecondaryButton(
+              child: GlassGhostButton(
                 label: 'Download',
                 icon: Icons.download_outlined,
-                onPressed: _download,
+                height: 44,
+                onTap: _download,
               ),
             ),
             const SizedBox(width: 8),
             Expanded(
-              child: DevIQSecondaryButton(
+              child: GlassGhostButton(
                 label: 'Reset',
                 icon: Icons.refresh,
-                onPressed: () => _reset(lang),
+                height: 44,
+                onTap: () => _reset(lang),
               ),
             ),
           ],
         ),
         const SizedBox(height: 8),
-        DevIQButton(
+        GlassPrimaryButton(
           label: state.running ? 'Running…' : 'Run',
           icon: Icons.play_arrow,
           loading: state.running,
@@ -332,9 +336,25 @@ class _LanguageMenu extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
         decoration: BoxDecoration(
-          color: theme.cardColor,
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: Theme.of(context).brightness == Brightness.dark
+                ? [
+                    Colors.white.withValues(alpha: 0.12),
+                    Colors.white.withValues(alpha: 0.04),
+                  ]
+                : [
+                    Colors.white.withValues(alpha: 0.8),
+                    Colors.white.withValues(alpha: 0.5),
+                  ],
+          ),
           borderRadius: BorderRadius.circular(DevIQRadius.button),
-          border: Border.all(color: theme.dividerColor),
+          border: Border.all(
+            color: LiquidGlassTokens.edge(
+              Theme.of(context).brightness == Brightness.dark,
+            ),
+          ),
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
@@ -374,9 +394,12 @@ class _LivePill extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
       decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.1),
+        color: color.withValues(alpha: 0.12),
         borderRadius: BorderRadius.circular(DevIQRadius.pill),
-        border: Border.all(color: color.withValues(alpha: 0.35)),
+        border: Border.all(color: color.withValues(alpha: 0.5)),
+        boxShadow: [
+          BoxShadow(color: color.withValues(alpha: 0.25), blurRadius: 8),
+        ],
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -408,8 +431,9 @@ class _StdinPanel extends StatelessWidget {
   final ThemeData theme;
 
   @override
-  Widget build(BuildContext context) => DevIQCard(
+  Widget build(BuildContext context) => LiquidGlass(
     padding: EdgeInsets.zero,
+    blur: 18,
     child: Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -477,8 +501,9 @@ class _EditorFrame extends StatelessWidget {
   final ThemeData theme;
 
   @override
-  Widget build(BuildContext context) => DevIQCard(
+  Widget build(BuildContext context) => LiquidGlass(
     padding: EdgeInsets.zero,
+    blur: 18,
     child: Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -613,8 +638,9 @@ class _TerminalFrame extends StatelessWidget {
   }
 
   @override
-  Widget build(BuildContext context) => DevIQCard(
+  Widget build(BuildContext context) => LiquidGlass(
     padding: EdgeInsets.zero,
+    blur: 18,
     child: Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -661,42 +687,63 @@ class _TerminalFrame extends StatelessWidget {
         ),
         Divider(height: 1, color: theme.dividerColor),
         Padding(
-          padding: const EdgeInsets.fromLTRB(12, 8, 8, 8),
-          child: Row(
-            children: [
-              Text(
-                '>',
-                style: GoogleFonts.jetBrainsMono(
-                  fontSize: 13,
-                  fontWeight: FontWeight.w700,
-                  color: DevIQColors.success,
+          padding: const EdgeInsets.fromLTRB(12, 8, 12, 8),
+          // Fixed-height input pill: prompt, field and Send share one
+          // 48px baseline so nothing drifts off-center.
+          child: Container(
+            height: 48,
+            padding: const EdgeInsets.symmetric(horizontal: 12),
+            decoration: BoxDecoration(
+              color: LiquidGlassTokens.inset(
+                theme.brightness == Brightness.dark,
+              ),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(
+                color: LiquidGlassTokens.edge(
+                  theme.brightness == Brightness.dark,
                 ),
               ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: TextField(
-                  controller: termInput,
-                  textInputAction: TextInputAction.send,
-                  onSubmitted: (_) => onSend(),
-                  style: GoogleFonts.jetBrainsMono(fontSize: 12.5),
-                  decoration: const InputDecoration(
-                    hintText: 'Type here if the program needs input…',
-                    border: InputBorder.none,
-                    enabledBorder: InputBorder.none,
-                    focusedBorder: InputBorder.none,
-                    filled: false,
-                    contentPadding: EdgeInsets.zero,
-                    isDense: true,
+            ),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Text(
+                  '>',
+                  style: GoogleFonts.jetBrainsMono(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w700,
+                    color: DevIQColors.success,
                   ),
                 ),
-              ),
-              const SizedBox(width: 8),
-              DevIQSecondaryButton(
-                label: 'Send ↵',
-                expanded: false,
-                onPressed: onSend,
-              ),
-            ],
+                const SizedBox(width: 8),
+                Expanded(
+                  child: TextField(
+                    controller: termInput,
+                    textInputAction: TextInputAction.send,
+                    textAlignVertical: TextAlignVertical.center,
+                    onSubmitted: (_) => onSend(),
+                    style: GoogleFonts.jetBrainsMono(fontSize: 12.5),
+                    decoration: const InputDecoration(
+                      hintText: 'Type here if the program needs input…',
+                      border: InputBorder.none,
+                      enabledBorder: InputBorder.none,
+                      focusedBorder: InputBorder.none,
+                      filled: false,
+                      contentPadding: EdgeInsets.zero,
+                      isDense: true,
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                GlassGhostButton(
+                  label: 'Send ↵',
+                  expanded: false,
+                  height: 30,
+                  fontSize: 13,
+                  onTap: onSend,
+                ),
+              ],
+            ),
           ),
         ),
       ],
@@ -773,9 +820,12 @@ class _StatusPill extends StatelessWidget {
   Widget build(BuildContext context) => Container(
     padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
     decoration: BoxDecoration(
-      color: color.withValues(alpha: 0.1),
+      color: color.withValues(alpha: 0.12),
       borderRadius: BorderRadius.circular(DevIQRadius.pill),
-      border: Border.all(color: color.withValues(alpha: 0.35)),
+      border: Border.all(color: color.withValues(alpha: 0.5)),
+      boxShadow: [
+        BoxShadow(color: color.withValues(alpha: 0.25), blurRadius: 8),
+      ],
     ),
     child: Text(
       label,
@@ -804,8 +854,9 @@ class _TipsPanel extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    return DevIQCard(
+    return LiquidGlass(
       padding: EdgeInsets.zero,
+      blur: 18,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [

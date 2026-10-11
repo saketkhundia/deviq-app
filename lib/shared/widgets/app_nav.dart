@@ -62,7 +62,7 @@ class DevIQHeader extends ConsumerWidget {
           _ThemeToggle(),
           const SizedBox(width: 12),
           GestureDetector(
-            onTap: () => context.push('/profile'),
+            onTap: () => context.go('/profile'),
             behavior: HitTestBehavior.opaque,
             child: Padding(
               padding: const EdgeInsets.symmetric(vertical: 4),
@@ -108,10 +108,10 @@ class DevIQBottomNav extends StatelessWidget {
   final String active;
   final ValueChanged<String>? onTab;
 
-  /// Primary tabs: Home · Analyze · Compare · Play, plus the More
-  /// sheet (Interview Prep, Ask AI, Review, Profile, History,
-  /// Settings). The active tab glides a translucent indicator with a
-  /// filled icon + label; the rest are muted icons + labels.
+  /// Primary tabs: Home · Interview · Play · Review, plus the More
+  /// sheet (Analyze, Compare, Profile, History, Ask AI, Settings).
+  /// The active tab glides a frosted capsule with a filled icon +
+  /// label; the rest are muted icons + labels.
   static const _tabs = [
     PillNavItem(
       id: 'home',
@@ -120,22 +120,22 @@ class DevIQBottomNav extends StatelessWidget {
       label: 'Home',
     ),
     PillNavItem(
-      id: 'analyze',
-      icon: Icons.analytics_outlined,
-      selectedIcon: Icons.analytics_rounded,
-      label: 'Analyze',
-    ),
-    PillNavItem(
-      id: 'compare',
-      icon: Icons.compare_arrows_outlined,
-      selectedIcon: Icons.compare_arrows_rounded,
-      label: 'Compare',
+      id: 'interview',
+      icon: Icons.work_outlined,
+      selectedIcon: Icons.work_rounded,
+      label: 'Interview',
     ),
     PillNavItem(
       id: 'play',
       icon: Icons.terminal_outlined,
       selectedIcon: Icons.terminal_rounded,
       label: 'Play',
+    ),
+    PillNavItem(
+      id: 'review',
+      icon: Icons.rate_review_outlined,
+      selectedIcon: Icons.rate_review,
+      label: 'Review',
     ),
     PillNavItem(
       id: 'more',
@@ -163,9 +163,19 @@ class MoreSheet extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final items = [
-      ('Interview Prep', Icons.work_outline, '/interview', DevIQColors.warning),
       ('Ask AI', Icons.smart_toy_outlined, '/ai', DevIQColors.codeforces),
-      ('Review', Icons.rate_review_outlined, '/review', DevIQColors.ai),
+      (
+        'Analyze',
+        Icons.analytics_outlined,
+        '/analyze',
+        DevIQColors.success,
+      ),
+      (
+        'Compare',
+        Icons.compare_arrows_outlined,
+        '/compare',
+        DevIQColors.github,
+      ),
       ('Profile', Icons.person_outlined, '/profile', null),
       ('History', Icons.history_outlined, '/history', null),
       ('Settings', Icons.settings_outlined, '/settings', null),

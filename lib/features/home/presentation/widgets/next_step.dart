@@ -102,7 +102,16 @@ class NextStepSection extends StatelessWidget {
                     GlassGhostButton(
                       label: directive.action,
                       icon: Icons.arrow_forward,
-                      onTap: () => context.push(directive.route),
+                      onTap: () {
+                        // Branch destinations switch tabs (keeps the
+                        // navbar and its state); the rest push.
+                        if (directive.route == '/interview' ||
+                            directive.route == '/review') {
+                          context.go(directive.route);
+                        } else {
+                          context.push(directive.route);
+                        }
+                      },
                     ),
                   ],
                 ),

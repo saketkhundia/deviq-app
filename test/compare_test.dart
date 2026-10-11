@@ -4,6 +4,7 @@ import 'package:deviq/data/models/github_models.dart';
 import 'package:deviq/data/repositories/analysis_repository.dart';
 import 'package:deviq/features/app/providers/app_providers.dart';
 import 'package:deviq/features/compare/presentation/compare_screen.dart';
+import 'package:deviq/shared/widgets/liquid_glass.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -85,6 +86,11 @@ void main() {
     expect(find.textContaining('leads by'), findsOneWidget);
     expect(find.textContaining('wins'), findsNWidgets(2));
     expect(find.text('VS'), findsOneWidget);
+    // Same liquid-glass material as Home and Analyze.
+    expect(find.byType(LiquidGlass), findsWidgets);
+    expect(find.byType(GlassPrimaryButton), findsOneWidget);
+    expect(find.byType(GlassBar), findsWidgets);
+    expect(find.byType(BackdropFilter), findsWidgets);
     for (final label in [
       'Dev Score',
       'Repos',

@@ -6,6 +6,7 @@ import '../../../../core/theme/deviq_colors.dart';
 import '../../../../core/utils/score_utils.dart';
 import '../../../../data/models/github_models.dart';
 import '../../../../shared/widgets/deviq_widgets.dart';
+import '../../../../shared/widgets/liquid_glass.dart';
 
 /// GitHub Insights panel: titled frame with an ADVANCED tag containing
 /// the most-complex (and, when different, most-starred) repository,
@@ -38,8 +39,9 @@ class GithubInsights extends StatelessWidget {
     final complex = repos.first;
     final byStars = repos.toList()..sort((a, b) => b.stars.compareTo(a.stars));
     final starred = byStars.first;
-    return DevIQCard(
+    return LiquidGlass(
       padding: EdgeInsets.zero,
+      blur: 18,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -138,13 +140,14 @@ class _InsightCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final dark = theme.brightness == Brightness.dark;
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: theme.scaffoldBackgroundColor.withValues(alpha: 0.5),
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: theme.dividerColor),
+        color: LiquidGlassTokens.inset(dark),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: LiquidGlassTokens.edge(dark)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,

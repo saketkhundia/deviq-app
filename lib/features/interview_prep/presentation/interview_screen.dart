@@ -57,7 +57,7 @@ class _InterviewScreenState extends ConsumerState<InterviewScreen> {
     final state = ref.watch(interviewProvider);
     final notifier = ref.read(interviewProvider.notifier);
     return DevIQPage(
-      reserveNav: false,
+      reserveNav: true,
       children: [
         const DevIQSectionLabel('INTERVIEW PREP', accent: DevIQColors.warning),
         const SizedBox(height: 10),

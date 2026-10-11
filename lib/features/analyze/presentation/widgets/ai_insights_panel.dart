@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 import '../../../../core/errors/api_exception.dart';
 import '../../../../data/models/analysis_models.dart';
 import '../../../../shared/widgets/deviq_widgets.dart';
+import '../../../../shared/widgets/liquid_glass.dart';
 import '../../../../shared/widgets/markdown_body.dart';
 import '../../../auth/presentation/auth_controller.dart';
 import '../insights_controller.dart';
@@ -54,8 +55,9 @@ class _AiInsightsPanelState extends ConsumerState<AiInsightsPanel> {
     final generated = InsightMode.values
         .where((m) => state.entry(m).status == InsightStatus.ready)
         .length;
-    return DevIQCard(
+    return LiquidGlass(
       padding: EdgeInsets.zero,
+      blur: 18,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -147,9 +149,15 @@ class _AiInsightsPanelState extends ConsumerState<AiInsightsPanel> {
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 6),
               decoration: BoxDecoration(
-                color: theme.scaffoldBackgroundColor.withValues(alpha: 0.5),
-                borderRadius: BorderRadius.circular(10),
-                border: Border.all(color: theme.dividerColor),
+                color: LiquidGlassTokens.inset(
+                  Theme.of(context).brightness == Brightness.dark,
+                ),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(
+                  color: LiquidGlassTokens.edge(
+                    Theme.of(context).brightness == Brightness.dark,
+                  ),
+                ),
               ),
               child: SingleChildScrollView(
                 scrollDirection: Axis.horizontal,
@@ -243,10 +251,10 @@ class _AiInsightsPanelState extends ConsumerState<AiInsightsPanel> {
           children: [
             ErrorState(message: mapped),
             const SizedBox(height: 8),
-            DevIQSecondaryButton(
+            GlassGhostButton(
               label: 'Sign in again',
               icon: Icons.login,
-              onPressed: () => context.push('/login'),
+              onTap: () => context.push('/login'),
             ),
           ],
         );
@@ -264,7 +272,7 @@ class _AiInsightsPanelState extends ConsumerState<AiInsightsPanel> {
               ),
             ),
             const SizedBox(height: 12),
-            DevIQButton(
+            GlassPrimaryButton(
               label: 'Generate ${_mode.label}',
               icon: Icons.auto_awesome_outlined,
               onPressed: () => ref

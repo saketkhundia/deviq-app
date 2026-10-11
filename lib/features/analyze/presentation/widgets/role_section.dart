@@ -2,11 +2,13 @@ import 'package:flutter/material.dart';
 
 import '../../../../core/utils/role_fit.dart';
 import '../../../../shared/widgets/deviq_widgets.dart';
+import '../../../../shared/widgets/liquid_glass.dart';
 
-/// Developer role matching in the web reference style: tinted best-match
-/// panel with initials badge and evidence pills, then all matching roles
-/// with per-role colored bars. Percentages are client-side estimates
-/// from public signals — captioned as such, never server scores.
+/// Developer role matching in liquid glass: frosted best-match lens
+/// with a luminous initials badge and evidence chips, then all
+/// matching roles with glowing per-role bars. Percentages are
+/// client-side estimates from public signals — captioned as such,
+/// never server scores.
 class RoleSection extends StatelessWidget {
   const RoleSection({super.key, required this.fits});
 
@@ -24,122 +26,104 @@ class RoleSection extends StatelessWidget {
     }
     final best = fits.first;
     final bestColor = roleColor(best.role);
-    return Column(
-      children: [
-        Container(
-          width: double.infinity,
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: bestColor.withValues(alpha: 0.07),
-            borderRadius: const BorderRadius.vertical(top: Radius.circular(10)),
-            border: Border.all(color: theme.dividerColor),
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+    return LiquidGlass(
+      blur: 18,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
             children: [
-              Row(
-                children: [
-                  Container(
-                    width: 52,
-                    height: 52,
-                    alignment: Alignment.center,
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(
-                        color: bestColor.withValues(alpha: 0.5),
-                      ),
-                      color: bestColor.withValues(alpha: 0.12),
-                    ),
-                    child: Text(
-                      roleInitials(best.role),
-                      style: TextStyle(
-                        color: bestColor,
-                        fontWeight: FontWeight.w800,
-                        fontSize: 17,
-                      ),
-                    ),
+              Container(
+                width: 52,
+                height: 52,
+                alignment: Alignment.center,
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(14),
+                  border: Border.all(color: bestColor.withValues(alpha: 0.55)),
+                  gradient: LinearGradient(
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                    colors: [
+                      bestColor.withValues(alpha: 0.22),
+                      bestColor.withValues(alpha: 0.08),
+                    ],
                   ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'BEST MATCH',
-                          style: theme.textTheme.labelSmall?.copyWith(
-                            color: theme.colorScheme.secondary,
-                            letterSpacing: 0.6,
-                            fontSize: 10.5,
-                          ),
-                        ),
-                        const SizedBox(height: 2),
-                        Text(
-                          best.role,
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
-                          style: theme.textTheme.titleLarge?.copyWith(
-                            fontWeight: FontWeight.w800,
-                            letterSpacing: -0.01,
-                          ),
-                        ),
-                      ],
+                  boxShadow: [
+                    BoxShadow(
+                      color: bestColor.withValues(alpha: 0.3),
+                      blurRadius: 14,
                     ),
-                  ),
-                ],
-              ),
-              if (best.evidence.isNotEmpty) ...[
-                const SizedBox(height: 10),
-                Wrap(
-                  spacing: 8,
-                  runSpacing: 8,
-                  children: [
-                    for (final e in best.evidence)
-                      _EvidencePill(text: e, color: bestColor),
                   ],
                 ),
-              ],
-            ],
-          ),
-        ),
-        Container(
-          width: double.infinity,
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: theme.cardColor,
-            borderRadius: const BorderRadius.vertical(
-              bottom: Radius.circular(10),
-            ),
-            border: Border(
-              left: BorderSide(color: theme.dividerColor),
-              right: BorderSide(color: theme.dividerColor),
-              bottom: BorderSide(color: theme.dividerColor),
-            ),
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'All Matching Roles (${fits.length})',
-                style: theme.textTheme.bodySmall?.copyWith(
-                  color: theme.colorScheme.secondary,
+                child: Text(
+                  roleInitials(best.role),
+                  style: TextStyle(
+                    color: bestColor,
+                    fontWeight: FontWeight.w800,
+                    fontSize: 17,
+                  ),
                 ),
               ),
-              const SizedBox(height: 12),
-              for (var i = 0; i < fits.length; i++) ...[
-                _RoleRow(fit: fits[i], showEvidence: i == 0),
-                if (i != fits.length - 1) const SizedBox(height: 14),
-              ],
-              const SizedBox(height: 10),
-              Text(
-                'Estimated from your public signals.',
-                style: theme.textTheme.labelSmall?.copyWith(
-                  color: theme.colorScheme.secondary,
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'BEST MATCH',
+                      style: theme.textTheme.labelSmall?.copyWith(
+                        color: theme.colorScheme.secondary,
+                        letterSpacing: 0.6,
+                        fontSize: 10.5,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      best.role,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: theme.textTheme.titleLarge?.copyWith(
+                        fontWeight: FontWeight.w800,
+                        letterSpacing: -0.01,
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ],
           ),
-        ),
-      ],
+          if (best.evidence.isNotEmpty) ...[
+            const SizedBox(height: 10),
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: [
+                for (final e in best.evidence)
+                  _EvidenceLens(text: e, color: bestColor),
+              ],
+            ),
+          ],
+          const SizedBox(height: 14),
+          Text(
+            'All Matching Roles (${fits.length})',
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: theme.colorScheme.secondary,
+            ),
+          ),
+          const SizedBox(height: 12),
+          for (var i = 0; i < fits.length; i++) ...[
+            _RoleRow(fit: fits[i], showEvidence: i == 0),
+            if (i != fits.length - 1) const SizedBox(height: 14),
+          ],
+          const SizedBox(height: 10),
+          Text(
+            'Estimated from your public signals.',
+            style: theme.textTheme.labelSmall?.copyWith(
+              color: theme.colorScheme.secondary,
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
@@ -192,15 +176,7 @@ class _RoleRow extends StatelessWidget {
           ],
         ),
         const SizedBox(height: 6),
-        ClipRRect(
-          borderRadius: BorderRadius.circular(4),
-          child: LinearProgressIndicator(
-            value: (fit.percent / 100).clamp(0, 1),
-            minHeight: 6,
-            backgroundColor: theme.dividerColor.withValues(alpha: 0.5),
-            valueColor: AlwaysStoppedAnimation(color),
-          ),
-        ),
+        GlassBar(value: fit.percent / 100, color: color, height: 6),
         if (showEvidence && fit.evidence.isNotEmpty) ...[
           const SizedBox(height: 8),
           Wrap(
@@ -208,7 +184,7 @@ class _RoleRow extends StatelessWidget {
             runSpacing: 8,
             children: [
               for (final e in fit.evidence)
-                _EvidencePill(text: e, color: color, subtle: true),
+                _EvidenceLens(text: e, color: color, subtle: true),
             ],
           ),
         ],
@@ -217,8 +193,8 @@ class _RoleRow extends StatelessWidget {
   }
 }
 
-class _EvidencePill extends StatelessWidget {
-  const _EvidencePill({
+class _EvidenceLens extends StatelessWidget {
+  const _EvidenceLens({
     required this.text,
     required this.color,
     this.subtle = false,
@@ -231,13 +207,18 @@ class _EvidencePill extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final dark = theme.brightness == Brightness.dark;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
       decoration: BoxDecoration(
-        color: subtle ? Colors.transparent : color.withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(6),
+        color: subtle
+            ? LiquidGlassTokens.inset(dark)
+            : color.withValues(alpha: 0.12),
+        borderRadius: BorderRadius.circular(8),
         border: Border.all(
-          color: subtle ? theme.dividerColor : color.withValues(alpha: 0.35),
+          color: subtle
+              ? LiquidGlassTokens.edge(dark)
+              : color.withValues(alpha: 0.45),
         ),
       ),
       child: Text(

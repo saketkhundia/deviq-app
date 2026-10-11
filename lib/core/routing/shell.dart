@@ -4,13 +4,14 @@ import 'package:go_router/go_router.dart';
 import '../../shared/widgets/app_nav.dart';
 
 /// Shell hosting the 4 primary tabs + custom bottom nav + header.
-/// Tabs: Home · Analyze · Compare · Play. Everything else (Interview
-/// Prep, Ask AI, Review, …) lives in the More sheet or pushes.
+/// Tabs: Home · Interview · Play · Review. Everything else
+/// (Analyze, Compare, Profile, History, Ask AI, Settings, …) lives
+/// in the More sheet or pushes.
 class AppShell extends StatelessWidget {
   const AppShell({super.key, required this.shell});
   final StatefulNavigationShell shell;
 
-  static const _ids = ['home', 'analyze', 'compare', 'play'];
+  static const _ids = ['home', 'interview', 'play', 'review'];
 
   String get _active {
     final i = shell.currentIndex.clamp(0, _ids.length - 1);

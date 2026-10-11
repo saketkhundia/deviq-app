@@ -295,6 +295,16 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
           child: Column(
             children: [
               ListTile(
+                leading: const Icon(Icons.settings_outlined, size: 19),
+                title: const Text(
+                  'Settings',
+                  style: TextStyle(fontWeight: FontWeight.w600),
+                ),
+                trailing: const Icon(Icons.chevron_right, size: 18),
+                onTap: () => context.push('/settings'),
+              ),
+              const Divider(height: 1),
+              ListTile(
                 leading: const Icon(Icons.logout, size: 19),
                 title: const Text(
                   'Logout',

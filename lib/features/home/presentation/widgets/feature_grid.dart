@@ -24,6 +24,7 @@ class FeatureEntry {
   static bool _isTab(String route) =>
       route == '/home' ||
       route == '/analyze' ||
+      route == '/review' ||
       route == '/interview' ||
       route == '/ai';
 

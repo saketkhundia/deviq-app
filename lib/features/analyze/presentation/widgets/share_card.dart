@@ -9,7 +9,7 @@ import 'package:url_launcher/url_launcher.dart';
 import '../../../../core/theme/deviq_colors.dart';
 import '../../../../core/utils/score_utils.dart';
 import '../../../../data/models/analysis_models.dart';
-import '../../../../shared/widgets/deviq_widgets.dart';
+import '../../../../shared/widgets/liquid_glass.dart';
 import '../../../../shared/widgets/score_ring.dart';
 
 /// Action row shown above the developer card (Share LinkedIn / Copy link /
@@ -140,31 +140,48 @@ class _GridAction extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    return OutlinedButton(
-      onPressed: onTap,
-      style: OutlinedButton.styleFrom(
-        foregroundColor: theme.colorScheme.onSurface,
-        side: BorderSide(color: theme.dividerColor),
-        padding: const EdgeInsets.symmetric(horizontal: 10),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(DevIQRadius.button),
-        ),
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon, size: 16),
-          const SizedBox(width: 7),
-          Flexible(
-            child: Text(
-              label,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13),
-            ),
+    final dark = theme.brightness == Brightness.dark;
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 12),
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: dark
+                ? [
+                    Colors.white.withValues(alpha: 0.12),
+                    Colors.white.withValues(alpha: 0.04),
+                  ]
+                : [
+                    Colors.white.withValues(alpha: 0.8),
+                    Colors.white.withValues(alpha: 0.5),
+                  ],
           ),
-        ],
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: LiquidGlassTokens.edge(dark)),
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(icon, size: 16),
+            const SizedBox(width: 7),
+            Flexible(
+              child: Text(
+                label,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(
+                  fontWeight: FontWeight.w600,
+                  fontSize: 13,
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -213,145 +230,156 @@ class DeveloperShareCard extends StatelessWidget {
         value: (g?.mostUsedLanguage ?? '').isEmpty ? '—' : g!.mostUsedLanguage,
       ),
     ];
-    return Container(
-      decoration: BoxDecoration(
-        border: Border(
-          top: BorderSide(
-            color: DevIQColors.success.withValues(alpha: 0.7),
-            width: 2,
-          ),
-        ),
-      ),
-      child: DevIQCard(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'DEVIQ REPORT',
-                        style: theme.textTheme.labelSmall?.copyWith(
-                          fontWeight: FontWeight.w600,
-                          letterSpacing: 0.6,
-                          color: theme.colorScheme.secondary,
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        _title(),
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                        style: theme.textTheme.titleLarge?.copyWith(
-                          fontWeight: FontWeight.w800,
-                          letterSpacing: -0.01,
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      _ClassificationBadge(score: score),
-                    ],
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Column(
-                  children: [
-                    ScoreRing(
-                      score: score,
-                      diameter: 108,
-                      duration: const Duration(milliseconds: 900),
-                      color: DevIQColors.success,
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      'Dev Score',
-                      style: theme.textTheme.labelSmall?.copyWith(
-                        color: theme.colorScheme.secondary,
-                      ),
-                    ),
-                  ],
+    final dark = theme.brightness == Brightness.dark;
+    return LiquidGlass(
+      blur: 18,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Signature green top accent, refracted as light.
+          Container(
+            height: 2,
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(2),
+              gradient: LinearGradient(
+                colors: [
+                  DevIQColors.success.withValues(alpha: 0),
+                  DevIQColors.success.withValues(alpha: 0.8),
+                  DevIQColors.success.withValues(alpha: 0),
+                ],
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: DevIQColors.success.withValues(alpha: 0.4),
+                  blurRadius: 8,
                 ),
               ],
             ),
-            const SizedBox(height: 14),
-            GridView.builder(
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 3,
-                crossAxisSpacing: 8,
-                mainAxisSpacing: 8,
-                mainAxisExtent: 64,
-              ),
-              itemCount: tiles.length,
-              itemBuilder: (context, i) => Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 10,
-                  vertical: 8,
-                ),
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: theme.dividerColor),
-                ),
+          ),
+          const SizedBox(height: 12),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Text(
-                      tiles[i].value,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: theme.textTheme.titleSmall?.copyWith(
-                        fontWeight: FontWeight.w800,
-                      ),
-                    ),
-                    Text(
-                      tiles[i].label,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
+                      'DEVIQ REPORT',
                       style: theme.textTheme.labelSmall?.copyWith(
+                        fontWeight: FontWeight.w600,
+                        letterSpacing: 0.6,
                         color: theme.colorScheme.secondary,
-                        fontSize: 10,
-                        letterSpacing: 0.4,
                       ),
                     ),
+                    const SizedBox(height: 8),
+                    Text(
+                      _title(),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: theme.textTheme.titleLarge?.copyWith(
+                        fontWeight: FontWeight.w800,
+                        letterSpacing: -0.01,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    _ClassificationBadge(score: score),
                   ],
                 ),
               ),
+              const SizedBox(width: 12),
+              Column(
+                children: [
+                  ScoreRing(
+                    score: score,
+                    diameter: 108,
+                    duration: const Duration(milliseconds: 900),
+                    color: DevIQColors.success,
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    'Dev Score',
+                    style: theme.textTheme.labelSmall?.copyWith(
+                      color: theme.colorScheme.secondary,
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+          const SizedBox(height: 14),
+          GridView.builder(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: 3,
+              crossAxisSpacing: 8,
+              mainAxisSpacing: 8,
+              mainAxisExtent: 64,
             ),
-            const SizedBox(height: 12),
-            Text(
-              _summary(),
-              style: theme.textTheme.bodySmall?.copyWith(
-                color: theme.colorScheme.secondary,
-                height: 1.6,
+            itemCount: tiles.length,
+            itemBuilder: (context, i) => Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+              decoration: BoxDecoration(
+                color: LiquidGlassTokens.inset(dark),
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(color: LiquidGlassTokens.edge(dark)),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    tiles[i].value,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: theme.textTheme.titleSmall?.copyWith(
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                  Text(
+                    tiles[i].label,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: theme.textTheme.labelSmall?.copyWith(
+                      color: theme.colorScheme.secondary,
+                      fontSize: 10,
+                      letterSpacing: 0.4,
+                    ),
+                  ),
+                ],
               ),
             ),
-            const SizedBox(height: 12),
-            Divider(height: 1, color: theme.dividerColor),
-            const SizedBox(height: 10),
-            Row(
-              children: [
-                Text(
-                  'DevIQ',
-                  style: theme.textTheme.bodySmall?.copyWith(
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-                const Spacer(),
-                Text(
-                  _date(),
-                  style: theme.textTheme.bodySmall?.copyWith(
-                    color: theme.colorScheme.secondary,
-                  ),
-                ),
-              ],
+          ),
+          const SizedBox(height: 12),
+          Text(
+            _summary(),
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: theme.colorScheme.secondary,
+              height: 1.6,
             ),
-          ],
-        ),
+          ),
+          const SizedBox(height: 12),
+          Divider(height: 1, color: theme.dividerColor),
+          const SizedBox(height: 10),
+          Row(
+            children: [
+              Text(
+                'DevIQ',
+                style: theme.textTheme.bodySmall?.copyWith(
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+              const Spacer(),
+              Text(
+                _date(),
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: theme.colorScheme.secondary,
+                ),
+              ),
+            ],
+          ),
+        ],
       ),
     );
   }

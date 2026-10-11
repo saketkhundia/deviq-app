@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/utils/role_fit.dart';
 import '../../../shared/layout/responsive.dart';
 import '../../../shared/widgets/deviq_widgets.dart';
+import '../../../shared/widgets/liquid_glass.dart';
 import 'analyze_controller.dart';
 import 'insights_controller.dart';
 import 'widgets/activity_section.dart';
@@ -70,7 +71,7 @@ class _AnalyzeScreenState extends ConsumerState<AnalyzeScreen> {
     final state = ref.watch(analyzeProvider);
     final loading = state.status == AnalyzeStatus.loading;
     return DevIQPage(
-      reserveNav: true,
+      reserveNav: false,
       controller: _scroll,
       children: [
         const DevIQSectionLabel('DEVELOPER ANALYTICS'),
@@ -153,7 +154,7 @@ class _Report extends StatelessWidget {
         Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const DevIQSectionLabel('DEVELOPER CARD'),
+            const GlassSectionHeader(index: '02', title: 'Developer card'),
             const SizedBox(height: 10),
             ShareActions(result: result),
             const SizedBox(height: 10),
@@ -169,7 +170,7 @@ class _Report extends StatelessWidget {
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const DevIQSectionLabel('PLATFORMS'),
+                const GlassSectionHeader(index: '03', title: 'Platforms'),
                 const SizedBox(height: 10),
                 if (result.github != null) ...[
                   GithubPlatformCard(result: result),
@@ -191,7 +192,7 @@ class _Report extends StatelessWidget {
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const DevIQSectionLabel('AI INSIGHTS'),
+              const GlassSectionHeader(index: '04', title: 'AI insights'),
               const SizedBox(height: 10),
               AiInsightsPanel(result: result),
             ],
@@ -205,7 +206,7 @@ class _Report extends StatelessWidget {
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const DevIQSectionLabel('ACTIVITY'),
+                const GlassSectionHeader(index: '05', title: 'Activity'),
                 const SizedBox(height: 10),
                 ActivitySection(data: result.contributions!),
               ],
@@ -222,7 +223,10 @@ class _Report extends StatelessWidget {
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const DevIQSectionLabel('WHICH ROLE FITS YOU BEST?'),
+              const GlassSectionHeader(
+                index: '06',
+                title: 'Which role fits you best?',
+              ),
               const SizedBox(height: 10),
               RoleSection(fits: fits),
             ],
@@ -236,7 +240,7 @@ class _Report extends StatelessWidget {
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const DevIQSectionLabel('REPOSITORIES'),
+                const GlassSectionHeader(index: '07', title: 'Repositories'),
                 const SizedBox(height: 10),
                 RepositoryBrowser(github: result.github!),
               ],
@@ -257,17 +261,17 @@ class _PartialWarning extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     return Container(
-      width: double.infinity,
       margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: Colors.amber.withValues(alpha: 0.08),
-        borderRadius: BorderRadius.circular(9),
-        border: Border.all(color: Colors.amber.withValues(alpha: 0.3)),
-      ),
-      child: Text(
-        'Partial data: ${failed.join(', ')} couldn\u2019t be reached. Showing the rest.',
-        style: theme.textTheme.bodySmall,
+      child: LiquidGlass(
+        padding: const EdgeInsets.all(12),
+        borderRadius: 14,
+        blur: 12,
+        tint: Colors.amber.withValues(alpha: 0.10),
+        border: Colors.amber.withValues(alpha: 0.4),
+        child: Text(
+          'Partial data: ${failed.join(', ')} couldn\u2019t be reached. Showing the rest.',
+          style: theme.textTheme.bodySmall,
+        ),
       ),
     );
   }
