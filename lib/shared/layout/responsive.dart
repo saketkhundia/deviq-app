@@ -25,10 +25,10 @@ class DevIQResponsive {
   static double widthOf(BuildContext context) =>
       MediaQuery.sizeOf(context).width;
 
-  /// Controlled horizontal padding: 16px on compact phones, 20px above.
-  /// Never desktop margins (100/150/200) on mobile.
+  /// Controlled horizontal padding: 16px on compact phones, 24px on
+  /// standard phones and up. Never desktop margins on mobile.
   static double hPadding(BuildContext context) =>
-      widthOf(context) < 380 ? 16 : 20;
+      widthOf(context) < 360 ? 16 : 24;
 
   /// Adaptive column count for grids. Mobile is ALWAYS 1 column unless the
   /// caller explicitly opts a compact grid into 2 columns on wider phones.

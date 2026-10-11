@@ -6,6 +6,7 @@ import '../../core/theme/deviq_colors.dart';
 import '../../features/app/providers/app_providers.dart';
 import '../../features/auth/presentation/auth_controller.dart';
 import 'deviq_widgets.dart';
+import 'glass.dart';
 
 /// Compact mobile header: DevIQ branding + avatar + theme toggle.
 /// Replaces the desktop floating pill navbar.
@@ -20,7 +21,7 @@ class DevIQHeader extends ConsumerWidget {
     final theme = Theme.of(context);
     final auth = ref.watch(authProvider);
     return Container(
-      padding: const EdgeInsets.fromLTRB(16, 10, 16, 10),
+      padding: const EdgeInsets.fromLTRB(20, 12, 20, 12),
       decoration: BoxDecoration(
         color: theme.scaffoldBackgroundColor,
         border: Border(bottom: BorderSide(color: theme.dividerColor)),
@@ -59,13 +60,17 @@ class DevIQHeader extends ConsumerWidget {
           const Spacer(),
           ...?actions,
           _ThemeToggle(),
-          const SizedBox(width: 8),
+          const SizedBox(width: 12),
           GestureDetector(
             onTap: () => context.push('/profile'),
-            child: ProfileAvatar(
-              url: auth.user?.avatar,
-              name: auth.user?.name,
-              radius: 15,
+            behavior: HitTestBehavior.opaque,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(vertical: 4),
+              child: ProfileAvatar(
+                url: auth.user?.avatar,
+                name: auth.user?.name,
+                radius: 15,
+              ),
             ),
           ),
         ],
@@ -77,6 +82,7 @@ class DevIQHeader extends ConsumerWidget {
 class _ThemeToggle extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final theme = Theme.of(context);
     final mode = ref.watch(themeModeProvider);
     final dark = mode != AppThemeMode.light;
     return IconButton(
@@ -87,7 +93,8 @@ class _ThemeToggle extends ConsumerWidget {
           .set(dark ? AppThemeMode.light : AppThemeMode.dark),
       icon: Icon(
         dark ? Icons.light_mode_outlined : Icons.dark_mode_outlined,
-        size: 19,
+        size: 20,
+        color: theme.colorScheme.secondary,
       ),
     );
   }
@@ -101,118 +108,51 @@ class DevIQBottomNav extends StatelessWidget {
   final String active;
   final ValueChanged<String>? onTab;
 
-  /// Primary tabs: Home · Analyze · Interview Prep · Ask AI, plus the
-  /// More sheet (Compare, Playground, Review, Profile, History,
-  /// Settings). Active tab renders as a filled pill with icon + label
-  /// (reference behavior); inactive tabs are muted icons only.
+  /// Primary tabs: Home · Analyze · Compare · Play, plus the More
+  /// sheet (Interview Prep, Ask AI, Review, Profile, History,
+  /// Settings). The active tab glides a translucent indicator with a
+  /// filled icon + label; the rest are muted icons + labels.
   static const _tabs = [
-    ('home', Icons.home_outlined, 'Home'),
-    ('analyze', Icons.analytics_outlined, 'Analyze'),
-    ('interview', Icons.work_outline, 'Interview'),
-    ('ai', Icons.smart_toy_outlined, 'Ask AI'),
-    ('more', Icons.apps_outlined, 'More'),
+    PillNavItem(
+      id: 'home',
+      icon: Icons.home_outlined,
+      selectedIcon: Icons.home_rounded,
+      label: 'Home',
+    ),
+    PillNavItem(
+      id: 'analyze',
+      icon: Icons.analytics_outlined,
+      selectedIcon: Icons.analytics_rounded,
+      label: 'Analyze',
+    ),
+    PillNavItem(
+      id: 'compare',
+      icon: Icons.compare_arrows_outlined,
+      selectedIcon: Icons.compare_arrows_rounded,
+      label: 'Compare',
+    ),
+    PillNavItem(
+      id: 'play',
+      icon: Icons.terminal_outlined,
+      selectedIcon: Icons.terminal_rounded,
+      label: 'Play',
+    ),
+    PillNavItem(
+      id: 'more',
+      icon: Icons.apps_outlined,
+      selectedIcon: Icons.apps_rounded,
+      label: 'More',
+    ),
   ];
 
   @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return SafeArea(
-      top: false,
-      child: Container(
-        margin: const EdgeInsets.fromLTRB(12, 0, 12, 12),
-        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 8),
-        decoration: BoxDecoration(
-          color: theme.cardColor,
-          borderRadius: BorderRadius.circular(24),
-          border: Border.all(color: theme.dividerColor),
-          boxShadow: const [
-            BoxShadow(
-              color: Color.fromRGBO(0, 0, 0, 0.25),
-              blurRadius: 16,
-              offset: Offset(0, 6),
-            ),
-          ],
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceAround,
-          children: [
-            for (final (id, icon, label) in _tabs)
-              _NavItem(
-                icon: icon,
-                label: label,
-                selected: active == id,
-                onTap: () {
-                  if (active == id || onTab == null) return;
-                  onTab!(id);
-                },
-              ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _NavItem extends StatelessWidget {
-  const _NavItem({
-    required this.icon,
-    required this.label,
-    required this.selected,
-    required this.onTap,
-  });
-
-  final IconData icon;
-  final String label;
-  final bool selected;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final fg = selected
-        ? theme.colorScheme.onPrimary
-        : theme.colorScheme.secondary;
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(DevIQRadius.pill),
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 180),
-        curve: Curves.easeOut,
-        padding: EdgeInsets.symmetric(
-          horizontal: selected ? 12 : 10,
-          vertical: 9,
-        ),
-        decoration: BoxDecoration(
-          color: selected ? theme.colorScheme.primary : Colors.transparent,
-          borderRadius: BorderRadius.circular(DevIQRadius.pill),
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(icon, size: 18, color: fg),
-            AnimatedSize(
-              duration: const Duration(milliseconds: 180),
-              curve: Curves.easeOut,
-              child: selected
-                  ? Padding(
-                      padding: const EdgeInsets.only(left: 6),
-                      child: Text(
-                        label,
-                        maxLines: 1,
-                        style: TextStyle(
-                          fontSize: 12,
-                          fontWeight: FontWeight.w700,
-                          color: fg,
-                        ),
-                      ),
-                    )
-                  : const SizedBox.shrink(),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
+  Widget build(BuildContext context) => SlidingPillNavigation(
+    items: _tabs,
+    selectedId: active,
+    onSelect: (id) {
+      if (id != active) onTab?.call(id);
+    },
+  );
 }
 
 /// "More" sheet: secondary destinations in the same card language.
@@ -223,8 +163,8 @@ class MoreSheet extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final items = [
-      ('Compare', Icons.compare_arrows_outlined, '/compare', DevIQColors.teal),
-      ('Playground', Icons.terminal_outlined, '/playground', null),
+      ('Interview Prep', Icons.work_outline, '/interview', DevIQColors.warning),
+      ('Ask AI', Icons.smart_toy_outlined, '/ai', DevIQColors.codeforces),
       ('Review', Icons.rate_review_outlined, '/review', DevIQColors.ai),
       ('Profile', Icons.person_outlined, '/profile', null),
       ('History', Icons.history_outlined, '/history', null),

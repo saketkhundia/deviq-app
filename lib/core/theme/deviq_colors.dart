@@ -5,9 +5,9 @@ import 'package:flutter/material.dart';
 class DevIQColors {
   const DevIQColors._();
 
-  // ---- Dark (primary experience) ----
-  static const Color darkBackground = Color(0xFF0A0A0A);
-  static const Color darkBackground2 = Color(0xFF141414);
+  // ---- Dark (primary experience: AMOLED pure black) ----
+  static const Color darkBackground = Color(0xFF000000);
+  static const Color darkBackground2 = Color(0xFF101214);
   static const Color darkSurface = Color(0xFF1A1A1A);
   static const Color darkBorder = Color(0xFF2A2A2A);
   static const Color darkBorderStrong = Color(0xFF404040);
@@ -40,6 +40,37 @@ class DevIQColors {
   static const Color error = Color(0xFFF43F5E); // rose/red
   static const Color ai = Color(0xFFFB7185); // subtle red/pink
   static const Color teal = Color(0xFF2DD4BF);
+
+  // ---- DevIQ signal identity ----
+  // Signature green: owns the unified score, its ring, the activity
+  // fingerprint, skill bars and achievement states. Platform colors
+  // stay on their own platforms; nothing else borrows this green.
+  static const Color signal = Color(0xFF42E58B);
+  static const Color signalLight = Color(0xFF0E9F5D);
+
+  /// Signal color with guaranteed contrast per brightness.
+  static Color signalFor(bool dark) => dark ? signal : signalLight;
+
+  /// Contribution-fingerprint intensity ramp (GitHub-legible greens
+  /// tuned toward the DevIQ signal hue).
+  static Color heatCell(bool dark, int level) {
+    const darkRamp = [
+      Color(0xFF121619),
+      Color(0xFF0B3B24),
+      Color(0xFF0E6B38),
+      Color(0xFF1FA855),
+      Color(0xFF42E58B),
+    ];
+    const lightRamp = [
+      Color(0xFFEBEDF0),
+      Color(0xFFB7F0CD),
+      Color(0xFF6FDD9B),
+      Color(0xFF25B862),
+      Color(0xFF0E9F5D),
+    ];
+    final ramp = dark ? darkRamp : lightRamp;
+    return ramp[level.clamp(0, 4)];
+  }
 
   /// Score color used by ScoreRing: >=80 green, >=60 blue, >=40 amber, else rose.
   static Color scoreColor(double score) {

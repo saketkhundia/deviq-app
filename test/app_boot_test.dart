@@ -32,7 +32,7 @@ void main() {
     for (var i = 0; i < 20; i++) {
       await t.pump(const Duration(milliseconds: 250));
     }
-    expect(find.text('Welcome back'), findsOneWidget);
+    expect(find.text('Welcome back.'), findsOneWidget);
     expect(find.text('Sign In'), findsOneWidget);
     expect(t.takeException(), isNull);
   });

@@ -175,9 +175,8 @@ Future<void> _pumpAuth(
     ProviderScope(
       child: Builder(
         builder: (context) => MediaQuery(
-          data: MediaQuery.of(context).copyWith(
-            textScaler: TextScaler.linear(textScale),
-          ),
+          data: MediaQuery.of(context)
+              .copyWith(textScaler: TextScaler.linear(textScale)),
           child: MaterialApp(
             theme: DevIQTheme.light(),
             darkTheme: DevIQTheme.dark(),
@@ -188,15 +187,18 @@ Future<void> _pumpAuth(
       ),
     ),
   );
-  await t.pumpAndSettle(const Duration(milliseconds: 100),
-      EnginePhase.sendSemanticsUpdate, const Duration(seconds: 10));
+  await t.pumpAndSettle(
+    const Duration(milliseconds: 100),
+    EnginePhase.sendSemanticsUpdate,
+    const Duration(seconds: 10),
+  );
 }
 
 void _authLayoutTests() {
   group('auth layout matrix', () {
     testWidgets('login 360 light', (t) async {
       await _pumpAuth(t, const LoginScreen(), dark: false);
-      expect(find.text('Welcome back'), findsOneWidget);
+      expect(find.text('Welcome back.'), findsOneWidget);
       expect(find.text('Sign In'), findsOneWidget);
       expect(t.takeException(), isNull);
     });
@@ -216,8 +218,7 @@ void _authLayoutTests() {
     testWidgets('signup large text + meter', (t) async {
       await _pumpAuth(t, const SignupScreen(), textScale: 1.3);
       // Password is the third field (name, email, password, confirm).
-      await t.enterText(
-          find.byType(TextFormField).at(2), 'StrongPass12!');
+      await t.enterText(find.byType(TextFormField).at(2), 'StrongPass12!');
       await t.pumpAndSettle();
       expect(find.text('Strong'), findsOneWidget);
       expect(t.takeException(), isNull);

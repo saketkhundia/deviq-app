@@ -54,7 +54,7 @@ class _CompareScreenState extends ConsumerState<CompareScreen> {
     final theme = Theme.of(context);
     final state = ref.watch(compareProvider);
     return DevIQPage(
-      reserveNav: false,
+      reserveNav: true,
       children: [
         const DevIQSectionLabel('HEAD-TO-HEAD'),
         const SizedBox(height: 10),

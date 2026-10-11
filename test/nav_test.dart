@@ -25,20 +25,26 @@ Future<void> _pumpNav(
       home: Scaffold(body: SafeArea(child: nav)),
     ),
   );
-  await t.pumpAndSettle(const Duration(milliseconds: 100),
-      EnginePhase.sendSemanticsUpdate, const Duration(seconds: 10));
+  await t.pumpAndSettle(
+    const Duration(milliseconds: 100),
+    EnginePhase.sendSemanticsUpdate,
+    const Duration(seconds: 10),
+  );
 }
 
 void main() {
   group('bottom nav reference behavior', () {
-    testWidgets('active pill shows label, others icon-only', (t) async {
-      await _pumpNav(
-          t, const DevIQBottomNav(active: 'analyze', onTab: null));
-      expect(find.text('Analyze'), findsOneWidget);
-      expect(find.text('Home'), findsNothing);
-      expect(find.text('Interview'), findsNothing);
-      expect(find.text('Ask AI'), findsNothing);
-      expect(find.text('More'), findsNothing);
+    testWidgets('active tab shows filled icon + label', (t) async {
+      await _pumpNav(t, const DevIQBottomNav(active: 'compare', onTab: null));
+      expect(find.byIcon(Icons.compare_arrows_rounded), findsOneWidget);
+      expect(find.byIcon(Icons.compare_arrows_outlined), findsNothing);
+      expect(find.byIcon(Icons.home_outlined), findsOneWidget);
+      expect(find.byIcon(Icons.terminal_outlined), findsOneWidget);
+      expect(find.byIcon(Icons.apps_outlined), findsOneWidget);
+      expect(find.text('Compare'), findsOneWidget);
+      expect(find.text('Home'), findsOneWidget);
+      expect(find.text('Play'), findsOneWidget);
+      expect(find.text('More'), findsOneWidget);
       expect(t.takeException(), isNull);
     });
 
@@ -46,15 +52,12 @@ void main() {
       String? tapped;
       await _pumpNav(
         t,
-        DevIQBottomNav(
-          active: 'home',
-          onTab: (id) => tapped = id,
-        ),
+        DevIQBottomNav(active: 'home', onTab: (id) => tapped = id),
       );
-      await t.tap(find.byIcon(Icons.work_outline));
-      expect(tapped, 'interview');
-      await t.tap(find.byIcon(Icons.smart_toy_outlined));
-      expect(tapped, 'ai');
+      await t.tap(find.byIcon(Icons.compare_arrows_outlined));
+      expect(tapped, 'compare');
+      await t.tap(find.byIcon(Icons.terminal_outlined));
+      expect(tapped, 'play');
       await t.tap(find.byIcon(Icons.apps_outlined));
       expect(tapped, 'more');
       expect(t.takeException(), isNull);
@@ -63,16 +66,17 @@ void main() {
     testWidgets('light theme renders without overflow', (t) async {
       await _pumpNav(
         t,
-        const DevIQBottomNav(active: 'ai', onTab: null),
+        const DevIQBottomNav(active: 'play', onTab: null),
         dark: false,
       );
-      expect(find.text('Ask AI'), findsOneWidget);
+      expect(find.byIcon(Icons.terminal_rounded), findsOneWidget);
+      expect(find.text('Play'), findsOneWidget);
       expect(t.takeException(), isNull);
     });
   });
 
   group('more sheet destinations', () {
-    testWidgets('compare + playground live in More', (t) async {
+    testWidgets('interview + ask ai live in More', (t) async {
       t.view.physicalSize = const Size(1080, 2400);
       t.view.devicePixelRatio = 3;
       addTearDown(() {
@@ -88,8 +92,8 @@ void main() {
       );
       await t.pumpAndSettle();
       for (final label in [
-        'Compare',
-        'Playground',
+        'Interview Prep',
+        'Ask AI',
         'Review',
         'Profile',
         'History',
@@ -97,8 +101,8 @@ void main() {
       ]) {
         expect(find.text(label), findsOneWidget);
       }
-      expect(find.text('Ask AI'), findsNothing);
-      expect(find.text('Interview Prep'), findsNothing);
+      expect(find.text('Compare'), findsNothing);
+      expect(find.text('Playground'), findsNothing);
       expect(t.takeException(), isNull);
     });
   });

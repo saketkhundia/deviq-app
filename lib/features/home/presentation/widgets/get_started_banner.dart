@@ -3,10 +3,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../auth/presentation/auth_controller.dart';
-import '../../../../shared/widgets/deviq_widgets.dart';
+import 'liquid_glass.dart';
 
-/// Wide CTA banner. Text-left/button-right on wide layouts, stacked on
-/// phones. Auth-aware: signed-in users go to Analyze, guests to signup.
+/// Closing call-to-action rebuilt from scratch in liquid glass.
+/// Deliberately subordinate to the hero: one calm frosted panel,
+/// restrained title, single signal-glass action. Auth-aware:
+/// signed-in users go to Analyze, guests to signup.
 class GetStartedBanner extends ConsumerWidget {
   const GetStartedBanner({super.key});
 
@@ -22,47 +24,48 @@ class GetStartedBanner extends ConsumerWidget {
       }
     }
 
-    final text = Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          'Ready to measure your profile?',
-          style: theme.textTheme.headlineSmall?.copyWith(
-            fontWeight: FontWeight.w800,
-            height: 1.1,
+    return LiquidGlass(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Ready to measure your profile?',
+            style: theme.textTheme.titleMedium?.copyWith(
+              fontWeight: FontWeight.w700,
+              fontSize: 17,
+              letterSpacing: -0.01,
+              height: 1.25,
+            ),
           ),
-        ),
-        const SizedBox(height: 8),
-        Text(
-          'Connect your accounts and get your score in seconds.',
-          style: theme.textTheme.bodyMedium?.copyWith(
-            color: theme.colorScheme.secondary,
+          const SizedBox(height: 8),
+          Text(
+            'Connect your accounts and get your score in seconds.',
+            style: theme.textTheme.bodyMedium?.copyWith(
+              color: theme.colorScheme.secondary,
+              fontSize: 14,
+              height: 1.55,
+            ),
           ),
-        ),
-      ],
-    );
-    final button = DevIQButton(
-      label: 'Get Started',
-      icon: Icons.arrow_forward,
-      onPressed: go,
-    );
-    return DevIQCard(
-      child: LayoutBuilder(
-        builder: (context, c) {
-          if (c.maxWidth >= 560) {
-            return Row(
-              children: [
-                Expanded(child: text),
-                const SizedBox(width: 16),
-                SizedBox(width: 180, child: button),
-              ],
-            );
-          }
-          return Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [text, const SizedBox(height: 16), button],
-          );
-        },
+          const SizedBox(height: 16),
+          LayoutBuilder(
+            builder: (context, c) {
+              final button = GlassPrimaryButton(
+                label: authed ? 'Analyze my profile' : 'Get Started',
+                icon: Icons.arrow_forward,
+                onPressed: go,
+              );
+              if (c.maxWidth >= 560) {
+                return Row(
+                  children: [
+                    const Spacer(),
+                    SizedBox(width: 220, child: button),
+                  ],
+                );
+              }
+              return button;
+            },
+          ),
+        ],
       ),
     );
   }

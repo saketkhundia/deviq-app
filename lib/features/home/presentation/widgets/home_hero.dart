@@ -1,89 +1,96 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../../../shared/widgets/deviq_widgets.dart';
+import '../../../../shared/widgets/platform_icons.dart';
+import 'liquid_glass.dart';
 
-/// Hero: eyebrow, heading, supporting copy and the three CTAs.
-/// Buttons stack gracefully on narrow phones instead of clipping.
+/// Hero — what DevIQ does. Rebuilt from scratch in liquid glass:
+/// luminous headline, one frosted platform strip, a signal-tinted
+/// glass primary action and ghost-glass secondary paths.
 class HomeHeroSection extends StatelessWidget {
   const HomeHeroSection({super.key});
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final secondary = theme.colorScheme.secondary;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const DevIQSectionLabel('DEVELOPER ANALYTICS PLATFORM'),
-        const SizedBox(height: 12),
+        Text(
+          'DEVELOPER INTELLIGENCE',
+          style: theme.textTheme.labelSmall?.copyWith(
+            fontWeight: FontWeight.w600,
+            letterSpacing: 0.8,
+            fontSize: 11,
+            color: secondary,
+          ),
+        ),
+        const SizedBox(height: 14),
         LayoutBuilder(
           builder: (context, c) {
             final w = c.maxWidth;
-            final size = w < 380 ? 36.0 : (w < 600 ? 40.0 : 52.0);
+            final size = w < 380 ? 32.0 : (w < 600 ? 34.0 : 44.0);
             return Text(
-              'Your developer\nprofile,\nfully measured.',
+              'Your developer\nprofile, fully\nmeasured.',
               style: theme.textTheme.displaySmall?.copyWith(
-                fontWeight: FontWeight.w800,
-                height: 1.04,
+                fontWeight: FontWeight.w700,
+                height: 1.12,
                 letterSpacing: -0.02,
                 fontSize: size,
               ),
             );
           },
         ),
-        const SizedBox(height: 12),
+        const SizedBox(height: 14),
         Text(
-          'DevIQ unifies your GitHub, LeetCode, and Codeforces stats into a single score — with AI insights, contribution tracking, and head-to-head comparisons.',
+          'DevIQ unifies your GitHub, LeetCode, and Codeforces data into one developer intelligence profile — a single score, your consistency fingerprint, and what to do next.',
           style: theme.textTheme.bodyMedium?.copyWith(
-            color: theme.colorScheme.secondary,
-            height: 1.55,
+            color: secondary,
+            height: 1.6,
+            fontSize: 15,
           ),
         ),
-        const SizedBox(height: 20),
-        DevIQButton(
+        const SizedBox(height: 18),
+        const _PlatformGlassStrip(),
+        const SizedBox(height: 22),
+        GlassPrimaryButton(
           label: 'Analyze Profile',
-          icon: Icons.analytics_outlined,
+          icon: Icons.arrow_forward,
           onPressed: () => context.go('/analyze'),
         ),
         const SizedBox(height: 10),
+        // Secondary paths stack full-width on phones so labels are
+        // never clipped; side-by-side only when width is generous.
         LayoutBuilder(
           builder: (context, c) {
-            final secondary = [
-              DevIQSecondaryButton(
+            final actions = [
+              GlassGhostButton(
                 label: 'Try Playground',
-                icon: Icons.terminal,
-                onPressed: () => context.push('/playground'),
+                icon: Icons.play_arrow_rounded,
+                onTap: () => context.push('/playground'),
               ),
-              DevIQSecondaryButton(
+              GlassGhostButton(
                 label: 'Compare Developers',
-                icon: Icons.compare_arrows,
-                onPressed: () => context.push('/compare'),
+                icon: Icons.compare_arrows_rounded,
+                onTap: () => context.push('/compare'),
               ),
             ];
-            // Side-by-side only when both labels comfortably fit;
-            // otherwise stack full-width so nothing clips.
-            if (c.maxWidth >= 340) {
+            if (c.maxWidth >= 560) {
               return Row(
                 children: [
-                  for (var i = 0; i < secondary.length; i++)
-                    Expanded(
-                      child: Padding(
-                        padding: EdgeInsets.only(
-                          left: i == 0 ? 0 : 5,
-                          right: i == 0 ? 5 : 0,
-                        ),
-                        child: secondary[i],
-                      ),
-                    ),
+                  Expanded(child: actions[0]),
+                  const SizedBox(width: 10),
+                  Expanded(child: actions[1]),
                 ],
               );
             }
             return Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                secondary[0],
+                actions[0],
                 const SizedBox(height: 10),
-                secondary[1],
+                actions[1],
               ],
             );
           },
@@ -93,13 +100,59 @@ class HomeHeroSection extends StatelessWidget {
   }
 }
 
-/// Thin horizontal divider between major home sections.
+/// Platform identities fused into one frosted strip: recognizable
+/// brand marks in their semantic colors, divided by hairlines.
+class _PlatformGlassStrip extends StatelessWidget {
+  const _PlatformGlassStrip();
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    Widget item(DevPlatform p, String name) => Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Icon(PlatformIcons.of(p), size: 13, color: PlatformIcons.accentOf(p)),
+        const SizedBox(width: 6),
+        Text(
+          name,
+          style: theme.textTheme.bodySmall?.copyWith(
+            color: theme.colorScheme.secondary,
+            fontSize: 12.5,
+          ),
+        ),
+      ],
+    );
+
+    final sep = Container(
+      width: 1,
+      height: 14,
+      margin: const EdgeInsets.symmetric(horizontal: 10),
+      color: LiquidGlassTokens.edge(
+        theme.brightness == Brightness.dark,
+      ),
+    );
+    return LiquidGlass(
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 11),
+      borderRadius: 14,
+      blur: 12,
+      child: Wrap(
+        crossAxisAlignment: WrapCrossAlignment.center,
+        children: [
+          item(DevPlatform.github, 'GitHub'),
+          sep,
+          item(DevPlatform.leetcode, 'LeetCode'),
+          sep,
+          item(DevPlatform.codeforces, 'Codeforces'),
+        ],
+      ),
+    );
+  }
+}
+
+/// Luminous divider between major home sections.
 class HomeDivider extends StatelessWidget {
   const HomeDivider({super.key});
 
   @override
-  Widget build(BuildContext context) => const Padding(
-    padding: EdgeInsets.symmetric(vertical: 4),
-    child: Divider(height: 1, thickness: 1),
-  );
+  Widget build(BuildContext context) => const GlassDivider();
 }

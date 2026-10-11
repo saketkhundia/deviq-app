@@ -49,9 +49,10 @@ void main() {
             } else {
               h.resolve(
                 Response(
-                    requestOptions: o,
-                    statusCode: 200,
-                    data: {'ok': true}),
+                  requestOptions: o,
+                  statusCode: 200,
+                  data: {'ok': true},
+                ),
               );
             }
           },
@@ -68,20 +69,27 @@ void main() {
 
     test('surfaces mapped error after the retry also fails', () async {
       final api = ApiClient(
-        dio: _failingThenOk(script: [
-          _conn,
-          _conn,
-          (o) => DioException(
-                requestOptions: o,
-                type: DioExceptionType.connectionError,
-              ),
-        ]),
+        dio: _failingThenOk(
+          script: [
+            _conn,
+            _conn,
+            (o) => DioException(
+              requestOptions: o,
+              type: DioExceptionType.connectionError,
+            ),
+          ],
+        ),
         baseUrl: 'https://x.test',
       );
       await expectLater(
         api.get<dynamic>('/health'),
-        throwsA(isA<ApiException>().having(
-            (e) => e.kind, 'kind', ApiErrorKind.network)),
+        throwsA(
+          isA<ApiException>().having(
+            (e) => e.kind,
+            'kind',
+            ApiErrorKind.network,
+          ),
+        ),
       );
     });
 
@@ -97,16 +105,20 @@ void main() {
                 requestOptions: o,
                 type: DioExceptionType.badResponse,
                 response: Response(
-                    requestOptions: o,
-                    statusCode: 404,
-                    data: {'detail': 'nope'}),
+                  requestOptions: o,
+                  statusCode: 404,
+                  data: {'detail': 'nope'},
+                ),
               ),
             );
           },
         ),
       );
       final api = ApiClient(dio: dio, baseUrl: 'https://x.test');
-      await expectLater(api.get<dynamic>('/nope'), throwsA(isA<ApiException>()));
+      await expectLater(
+        api.get<dynamic>('/nope'),
+        throwsA(isA<ApiException>()),
+      );
       expect(calls, 1);
     });
 
@@ -123,7 +135,9 @@ void main() {
       );
       final api = ApiClient(dio: dio, baseUrl: 'https://x.test');
       await expectLater(
-          api.post<dynamic>('/auth/login'), throwsA(isA<ApiException>()));
+        api.post<dynamic>('/auth/login'),
+        throwsA(isA<ApiException>()),
+      );
       expect(calls, 1);
     });
   });

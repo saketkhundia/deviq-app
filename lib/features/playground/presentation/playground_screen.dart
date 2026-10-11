@@ -173,7 +173,7 @@ class _PlaygroundScreenState extends ConsumerState<PlaygroundScreen> {
     final mono = GoogleFonts.jetBrainsMono(fontSize: 12);
 
     return DevIQPage(
-      reserveNav: false,
+      reserveNav: true,
       children: [
         const DevIQSectionLabel('INTERACTIVE CODE PLAYGROUND'),
         const SizedBox(height: 10),

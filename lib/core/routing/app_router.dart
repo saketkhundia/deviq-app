@@ -55,30 +55,29 @@ GoRouter buildRouter({
         StatefulShellBranch(
           routes: [
             GoRoute(
-              path: '/interview',
-              pageBuilder: (c, s) => _page(const InterviewScreen(), s),
+              path: '/compare',
+              pageBuilder: (c, s) => _page(const CompareScreen(), s),
             ),
           ],
         ),
         StatefulShellBranch(
           routes: [
             GoRoute(
-              path: '/ai',
-              pageBuilder: (c, s) => _page(const AiScreen(), s),
+              path: '/playground',
+              pageBuilder: (c, s) => _page(const PlaygroundScreen(), s),
             ),
           ],
         ),
       ],
     ),
     GoRoute(
-      path: '/compare',
+      path: '/interview',
       pageBuilder: (c, s) =>
-          _page(const DevIQSubPage(child: CompareScreen()), s),
+          _page(const DevIQSubPage(child: InterviewScreen()), s),
     ),
     GoRoute(
-      path: '/playground',
-      pageBuilder: (c, s) =>
-          _page(const DevIQSubPage(child: PlaygroundScreen()), s),
+      path: '/ai',
+      pageBuilder: (c, s) => _page(const DevIQSubPage(child: AiScreen()), s),
     ),
     GoRoute(
       path: '/login',
