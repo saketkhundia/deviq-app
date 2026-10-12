@@ -1,3 +1,4 @@
+import 'package:deviq/core/theme/deviq_colors.dart';
 import 'package:deviq/core/theme/deviq_theme.dart';
 import 'package:deviq/data/models/ai_models.dart';
 import 'package:deviq/data/repositories/execution_repository.dart';
@@ -82,7 +83,10 @@ void main() {
     // Send is a compact inline chip hugging the text line.
     expect(
       find.byWidgetPredicate(
-        (w) => w is GlassGhostButton && w.height == 30 && w.fontSize == 13,
+        (w) =>
+            w is GlassGhostButton &&
+            w.height == DevIQControls.miniHeight &&
+            w.fontSize == 13,
       ),
       findsOneWidget,
     );

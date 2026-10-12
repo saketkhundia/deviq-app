@@ -4,14 +4,13 @@ import 'package:go_router/go_router.dart';
 import '../../shared/widgets/app_nav.dart';
 
 /// Shell hosting the 4 primary tabs + custom bottom nav + header.
-/// Tabs: Home · Interview · Play · Review. Everything else
-/// (Analyze, Compare, Profile, History, Ask AI, Settings, …) lives
-/// in the More sheet or pushes.
+/// Tabs: Home · Interview · Play · Review · Profile. Everything else
+/// (Analyze, Compare, History, Ask AI, Settings, …) pushes on top.
 class AppShell extends StatelessWidget {
   const AppShell({super.key, required this.shell});
   final StatefulNavigationShell shell;
 
-  static const _ids = ['home', 'interview', 'play', 'review'];
+  static const _ids = ['home', 'interview', 'play', 'review', 'profile'];
 
   String get _active {
     final i = shell.currentIndex.clamp(0, _ids.length - 1);
@@ -19,10 +18,6 @@ class AppShell extends StatelessWidget {
   }
 
   void _onTab(BuildContext context, String id) {
-    if (id == 'more') {
-      showModalBottomSheet(context: context, builder: (_) => const MoreSheet());
-      return;
-    }
     final index = _ids.indexOf(id);
     if (index >= 0) shell.goBranch(index);
   }

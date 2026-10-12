@@ -357,6 +357,8 @@ class DevIQTextField extends StatelessWidget {
           onFieldSubmitted: onSubmitted,
           style: theme.textTheme.bodyMedium?.copyWith(
             fontFamily: monospace ? 'monospace' : null,
+            // 16px keeps iOS from zooming on focus.
+            fontSize: DevIQControls.inputFontSize,
           ),
           decoration: InputDecoration(
             hintText: hint,

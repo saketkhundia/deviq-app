@@ -1,6 +1,9 @@
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+
+import '../../core/theme/deviq_colors.dart';
 
 /// Liquid-glass material system, built from scratch for Home.
 ///
@@ -380,25 +383,81 @@ class _GlassPressable extends StatefulWidget {
 
 class _GlassPressableState extends State<_GlassPressable> {
   bool _pressed = false;
+  bool _focused = false;
+  final FocusNode _node = FocusNode();
+
+  @override
+  void dispose() {
+    _node.dispose();
+    super.dispose();
+  }
+
+  KeyEventResult _key(FocusNode node, KeyEvent event) {
+    if (event is! KeyDownEvent) return KeyEventResult.ignored;
+    final activate =
+        event.logicalKey == LogicalKeyboardKey.enter ||
+        event.logicalKey == LogicalKeyboardKey.space;
+    if (activate && widget.onTap != null) {
+      widget.onTap!();
+      return KeyEventResult.handled;
+    }
+    return KeyEventResult.ignored;
+  }
 
   @override
   Widget build(BuildContext context) {
     final motion = MediaQuery.disableAnimationsOf(context)
         ? Duration.zero
         : const Duration(milliseconds: 120);
-    return Opacity(
-      opacity: widget.onTap == null ? 0.55 : 1,
-      child: GestureDetector(
-        behavior: HitTestBehavior.opaque,
-        onTapDown: widget.onTap == null ? null : (_) => _set(true),
-        onTapUp: widget.onTap == null ? null : (_) => _set(false),
-        onTapCancel: () => _set(false),
-        onTap: widget.onTap,
-        child: AnimatedScale(
-          scale: _pressed ? 0.97 : 1,
-          duration: motion,
-          curve: Curves.easeOut,
-          child: widget.child,
+    return Semantics(
+      button: true,
+      enabled: widget.onTap != null,
+      focusable: widget.onTap != null,
+      focused: _focused,
+      child: Opacity(
+        opacity: widget.onTap == null ? 0.55 : 1,
+        child: Focus(
+          focusNode: _node,
+          canRequestFocus: widget.onTap != null,
+          onFocusChange: (v) {
+            if (_focused != v && mounted) setState(() => _focused = v);
+          },
+          onKeyEvent: (node, event) => _key(node, event),
+          child: GestureDetector(
+            behavior: HitTestBehavior.opaque,
+            onTapDown: widget.onTap == null ? null : (_) => _set(true),
+            onTapUp: widget.onTap == null ? null : (_) => _set(false),
+            onTapCancel: () => _set(false),
+            onTap: widget.onTap,
+            child: AnimatedScale(
+              scale: _pressed ? 0.97 : 1,
+              duration: motion,
+              curve: Curves.easeOut,
+              child: Stack(
+                children: [
+                  widget.child,
+                  // Visible keyboard focus ring. Mouse/touch users
+                  // never see it; keyboard users always can.
+                  if (_focused && widget.onTap != null)
+                    Positioned.fill(
+                      child: IgnorePointer(
+                        child: Container(
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(
+                              widget.borderRadius,
+                            ),
+                            border: Border.all(
+                              color: Colors.white.withValues(alpha: 0.85),
+                              width: 2,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                ],
+              ),
+            ),
+          ),
         ),
       ),
     );
@@ -410,7 +469,7 @@ class _GlassPressableState extends State<_GlassPressable> {
 }
 
 /// Primary glass action: signal-tinted refractive fill, luminous
-/// signal border, bright label, soft green aura. 54px touch target.
+/// signal border, bright label, soft green aura. 52px touch target.
 class GlassPrimaryButton extends StatelessWidget {
   const GlassPrimaryButton({
     super.key,
@@ -437,7 +496,7 @@ class GlassPrimaryButton extends StatelessWidget {
       child: BackdropFilter(
         filter: ImageFilter.blur(sigmaX: 14, sigmaY: 14),
         child: Container(
-          height: 54,
+          height: DevIQControls.primaryHeight,
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(16),
             gradient: LinearGradient(
@@ -545,7 +604,7 @@ class GlassPrimaryButton extends StatelessWidget {
 }
 
 /// Quiet glass action: neutral refractive fill for secondary paths.
-/// 50px touch target, never clipped: full-width stacked on phones.
+/// 48px touch target, never clipped: full-width stacked on phones.
 class GlassGhostButton extends StatelessWidget {
   const GlassGhostButton({
     super.key,
@@ -553,7 +612,7 @@ class GlassGhostButton extends StatelessWidget {
     required this.onTap,
     this.icon,
     this.expanded = true,
-    this.height = 50,
+    this.height = DevIQControls.secondaryHeight,
     this.fontSize = 15,
   });
 
@@ -565,7 +624,7 @@ class GlassGhostButton extends StatelessWidget {
   /// false for inline placement.
   final bool expanded;
 
-  /// Lens height. Default 50px touch target; compact rows (terminal
+  /// Lens height. Default 48px touch target; compact rows (terminal
   /// send) may pass a smaller value.
   final double height;
 

@@ -185,6 +185,13 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     if (ok && mounted) context.go('/home');
   }
 
+  Future<void> _google() async {
+    final ctrl = ref.read(authProvider.notifier);
+    if (ctrl.working) return;
+    final ok = await ctrl.signInWithGoogle();
+    if (ok && mounted) context.go('/home');
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -270,12 +277,16 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 loading: auth.working,
                 onPressed: _submit,
               ),
+              const SizedBox(height: 12),
+              const OrDivider(),
+              const SizedBox(height: 12),
+              GoogleSignInButton(
+                loading: auth.working,
+                onPressed: auth.working ? null : _google,
+              ),
             ],
           ),
         ),
-        // NOTE: no social buttons — POST /auth/oauth needs
-        // a web OAuth code flow with no documented mobile
-        // redirect/PKCE support (see phase report).
         const SizedBox(height: 16),
         Wrap(
           alignment: WrapAlignment.center,

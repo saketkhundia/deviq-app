@@ -68,6 +68,14 @@ GoRouter buildRouter({
             ),
           ],
         ),
+        StatefulShellBranch(
+          routes: [
+            GoRoute(
+              path: '/profile',
+              pageBuilder: (c, s) => _page(const ProfileScreen(), s),
+            ),
+          ],
+        ),
       ],
     ),
     GoRoute(
@@ -84,11 +92,6 @@ GoRouter buildRouter({
       path: '/history',
       pageBuilder: (c, s) =>
           _page(const DevIQSubPage(child: HistoryScreen()), s),
-    ),
-    GoRoute(
-      path: '/profile',
-      pageBuilder: (c, s) =>
-          _page(const DevIQSubPage(child: ProfileScreen()), s),
     ),
     GoRoute(
       path: '/ai',

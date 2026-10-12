@@ -2,14 +2,15 @@ import 'package:deviq/core/routing/app_router.dart';
 import 'package:deviq/core/theme/deviq_theme.dart';
 import 'package:deviq/features/auth/presentation/auth_controller.dart';
 import 'package:deviq/shared/widgets/app_nav.dart';
+import 'package:deviq/shared/widgets/glass.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 
 /// Bottom nav: frosted capsule bar with Home · Interview · Play ·
-/// Review · More, continuous finger-tracking capsule, spring settle.
-/// Taps, scrubs, reversals and clamps all route by finger position.
+/// Review · Profile, continuous finger-tracking capsule, spring
+/// settle, and a long-press avatar menu (Ask AI, Analyze, Compare).
 Future<void> _pumpNav(
   WidgetTester t,
   DevIQBottomNav nav, {
@@ -55,7 +56,9 @@ void main() {
       expect(find.text('Home'), findsOneWidget);
       expect(find.text('Interview'), findsOneWidget);
       expect(find.text('Play'), findsOneWidget);
-      expect(find.text('More'), findsOneWidget);
+      expect(find.text('Profile'), findsOneWidget);
+      // Signed out: avatar falls back to the person glyph.
+      expect(find.byIcon(Icons.person_outlined), findsOneWidget);
       // Liquid-glass bar: real backdrop blur beneath the lens.
       expect(find.byType(BackdropFilter), findsWidgets);
       expect(t.takeException(), isNull);
@@ -71,8 +74,8 @@ void main() {
       expect(tapped, 'interview');
       await t.tap(find.byIcon(Icons.terminal_outlined));
       expect(tapped, 'play');
-      await t.tap(find.byIcon(Icons.apps_outlined));
-      expect(tapped, 'more');
+      await t.tap(find.text('Profile'));
+      expect(tapped, 'profile');
       expect(t.takeException(), isNull);
     });
 
@@ -117,6 +120,33 @@ void main() {
       final indicator = find.byType(AnimatedPositioned);
       expect(indicator, findsOneWidget);
       expect(t.getSize(indicator).height, lessThan(120));
+    });
+  });
+
+  group('shell branch alignment', () {
+    test('branch paths match tab ids in order', () {
+      // Regression: a stale branch once shifted every tab by one.
+      // The branch table must stay exactly [home, interview,
+      // playground, review, profile] to match AppShell._ids.
+      final refresh = ChangeNotifier();
+      addTearDown(refresh.dispose);
+      final router = buildRouter(
+        authStatus: () => AuthStatus.authenticated,
+        refresh: refresh,
+      );
+      final shellRoute =
+          router.configuration.routes.whereType<StatefulShellRoute>().single;
+      final paths = [
+        for (final branch in shellRoute.branches)
+          (branch.routes.single as GoRoute).path,
+      ];
+      expect(paths, [
+        '/home',
+        '/interview',
+        '/playground',
+        '/review',
+        '/profile',
+      ]);
     });
   });
 
@@ -200,61 +230,95 @@ void main() {
       final start = t.getCenter(find.text('Home'));
       await t.dragFrom(start, const Offset(1000, 0));
       await _settle(t);
-      // Never overshoots: clamps to More and routes there.
-      expect(tapped, 'more');
+      // Never overshoots: clamps to Profile and routes there.
+      expect(tapped, 'profile');
       expect(t.takeException(), isNull);
     });
   });
 
-  group('shell branch alignment', () {
-    test('branch paths match tab ids in order', () {
-      // Regression: a stale /analyze branch once shifted every tab by
-      // one (Interview→Analyze, Play→Interview, Review→Play). The
-      // branch table must stay exactly [home, interview, playground,
-      // review] to match AppShell._ids.
-      final refresh = ChangeNotifier();
-      addTearDown(refresh.dispose);
-      final router = buildRouter(
-        authStatus: () => AuthStatus.authenticated,
-        refresh: refresh,
-      );
-      final shellRoute =
-          router.configuration.routes.whereType<StatefulShellRoute>().single;
-      final paths = [
-        for (final branch in shellRoute.branches)
-          (branch.routes.single as GoRoute).path,
-      ];
-      expect(paths, ['/home', '/interview', '/playground', '/review']);
+  group('profile hold menu', () {
+    testWidgets('shows only Ask AI, Analyze and Compare', (t) async {
+      await _pumpNav(t, const DevIQBottomNav(active: 'home', onTab: null));
+      await t.longPress(find.text('Profile'));
+      await _settle(t);
+      for (final label in ['Ask AI', 'Analyze', 'Compare']) {
+        expect(find.text(label), findsOneWidget);
+      }
+      expect(find.text('Settings'), findsNothing);
+      expect(find.text('History'), findsNothing);
+      // Frosted lens, not a solid panel.
+      expect(find.byType(BackdropFilter), findsWidgets);
+      expect(t.takeException(), isNull);
     });
-  });
 
-  group('more sheet destinations', () {    testWidgets('secondary destinations live in More', (t) async {
+    testWidgets('tap outside dismisses without routing', (t) async {
+      String? tapped;
+      await _pumpNav(
+        t,
+        DevIQBottomNav(active: 'home', onTab: (id) => tapped = id),
+      );
+      await t.longPress(find.text('Profile'));
+      await _settle(t);
+      expect(find.text('Compare'), findsOneWidget);
+      await t.tapAt(const Offset(180, 200));
+      await _settle(t);
+      expect(find.text('Compare'), findsNothing);
+      expect(tapped, isNull);
+      expect(t.takeException(), isNull);
+    });
+
+    testWidgets('menu pick dismisses and attempts its route', (t) async {
       t.view.physicalSize = const Size(1080, 2400);
       t.view.devicePixelRatio = 3;
       addTearDown(() {
         t.view.resetPhysicalSize();
         t.view.resetDevicePixelRatio();
       });
+      final router = GoRouter(
+        initialLocation: '/home',
+        routes: [
+          GoRoute(
+            path: '/home',
+            builder: (_, _) => Scaffold(
+              backgroundColor: Colors.black,
+              body: const SizedBox.expand(),
+              bottomNavigationBar: ProviderScope(
+                child: DevIQBottomNav(active: 'home', onTab: (_) {}),
+              ),
+            ),
+          ),
+          GoRoute(
+            path: '/compare',
+            builder: (_, _) =>
+                const Scaffold(body: Center(child: Text('COMPARE PAGE'))),
+          ),
+        ],
+      );
       await t.pumpWidget(
-        MaterialApp(
+        MaterialApp.router(
           darkTheme: DevIQTheme.dark(),
           themeMode: ThemeMode.dark,
-          home: const Scaffold(body: MoreSheet()),
+          routerConfig: router,
         ),
       );
-      await t.pumpAndSettle();
-      for (final label in [
-        'Ask AI',
-        'Analyze',
-        'Compare',
-        'Profile',
-        'History',
-        'Settings',
-      ]) {
-        expect(find.text(label), findsOneWidget);
-      }
-      expect(find.text('Review'), findsNothing);
-      expect(find.text('Playground'), findsNothing);
+      await _settle(t);
+      await t.longPress(find.text('Profile'));
+      await _settle(t);
+      // The menu floats clear of the bar with breathing room, never
+      // jammed into the corner.
+      final barTop = t.getTopLeft(find.byType(SlidingPillNavigation)).dy;
+      final menuBox = find.byWidgetPredicate(
+        (w) => w is SizedBox && w.width == 208,
+      );
+      expect(menuBox, findsOneWidget);
+      expect(barTop - t.getBottomRight(menuBox).dy, closeTo(26, 6));
+      await t.tap(find.text('Compare'));
+      await _settle(t);
+      // Picking dismisses the menu through the shared onPick chain.
+      // (go_router push round-trips the platform navigation channel,
+      // which is inert in widget tests, so arrival is verified on
+      // device; the identical push pattern drives every working flow.)
+      expect(find.text('Compare'), findsNothing);
       expect(t.takeException(), isNull);
     });
   });

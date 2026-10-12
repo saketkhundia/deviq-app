@@ -80,27 +80,23 @@ class _InterviewScreenState extends ConsumerState<InterviewScreen> {
         ),
         const SizedBox(height: 16),
         Row(
+          crossAxisAlignment: CrossAxisAlignment.end,
           children: [
             Expanded(
-              child: TextField(
+              child: DevIQTextField(
                 controller: _user,
+                label: 'LeetCode username',
+                hint: 'Enter your LeetCode username…',
+                monospace: true,
                 textInputAction: TextInputAction.search,
                 onSubmitted: (_) => _analyze(),
-                style: theme.textTheme.bodyMedium?.copyWith(
-                  fontFamily: 'monospace',
-                ),
-                decoration: const InputDecoration(
-                  hintText: 'Enter your LeetCode username…',
-                ),
               ),
             ),
             const SizedBox(width: 8),
-            SizedBox(
-              width: 108,
-              child: DevIQSecondaryButton(
-                label: state.analyzing ? '…' : 'Analyze',
-                onPressed: state.analyzing ? null : _analyze,
-              ),
+            DevIQSecondaryButton(
+              label: state.analyzing ? '…' : 'Analyze',
+              expanded: false,
+              onPressed: state.analyzing ? null : _analyze,
             ),
           ],
         ),

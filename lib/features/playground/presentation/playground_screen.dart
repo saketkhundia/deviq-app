@@ -251,7 +251,7 @@ class _PlaygroundScreenState extends ConsumerState<PlaygroundScreen> {
               child: GlassGhostButton(
                 label: 'Copy',
                 icon: Icons.copy_outlined,
-                height: 44,
+                height: DevIQControls.compactHeight,
                 onTap: _copyCode,
               ),
             ),
@@ -260,7 +260,7 @@ class _PlaygroundScreenState extends ConsumerState<PlaygroundScreen> {
               child: GlassGhostButton(
                 label: 'Download',
                 icon: Icons.download_outlined,
-                height: 44,
+                height: DevIQControls.compactHeight,
                 onTap: _download,
               ),
             ),
@@ -269,7 +269,7 @@ class _PlaygroundScreenState extends ConsumerState<PlaygroundScreen> {
               child: GlassGhostButton(
                 label: 'Reset',
                 icon: Icons.refresh,
-                height: 44,
+                height: DevIQControls.compactHeight,
                 onTap: () => _reset(lang),
               ),
             ),
@@ -738,7 +738,7 @@ class _TerminalFrame extends StatelessWidget {
                 GlassGhostButton(
                   label: 'Send ↵',
                   expanded: false,
-                  height: 30,
+                  height: DevIQControls.miniHeight,
                   fontSize: 13,
                   onTap: onSend,
                 ),

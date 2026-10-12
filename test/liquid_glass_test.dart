@@ -1,6 +1,7 @@
 import 'package:deviq/core/theme/deviq_theme.dart';
 import 'package:deviq/features/home/presentation/widgets/liquid_glass.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 /// Liquid-glass system: refractive surfaces, aurora field, press
@@ -208,6 +209,71 @@ void main() {
       expect(t.takeException(), isNull);
       expect(find.text('Try Playground'), findsOneWidget);
     });
+
+    testWidgets('glass button is keyboard-focusable with ring + action',
+        (t) async {
+      _setSurface(t, 375);
+      var taps = 0;
+      await t.pumpWidget(
+        _wrap(GlassGhostButton(label: 'Focus me', onTap: () => taps++)),
+      );
+      await t.pump();
+      // Exposed as a button to assistive tech.
+      expect(
+        find.byWidgetPredicate(
+          (w) => w is Semantics && w.properties.button == true,
+        ),
+        findsWidgets,
+      );
+      // Tab traversal lands keyboard focus and draws a visible ring…
+      await t.sendKeyEvent(LogicalKeyboardKey.tab);
+      await t.pump();
+      expect(
+        find.byWidgetPredicate(
+          (w) =>
+              w is Container &&
+              (w.decoration as BoxDecoration?)?.border?.top.width == 2,
+        ),
+        findsOneWidget,
+      );
+      // …and Enter activates.
+      await t.sendKeyEvent(LogicalKeyboardKey.enter);
+      await t.pump();
+      expect(taps, 1);
+      expect(t.takeException(), isNull);
+    });
+
+    testWidgets('disabled glass button takes no focus or input', (t) async {
+      _setSurface(t, 375);
+      var taps = 0;
+      await t.pumpWidget(
+        _wrap(
+          GlassPrimaryButton(
+            label: 'Blocked',
+            onPressed: () => taps++,
+            loading: true,
+          ),
+        ),
+      );
+      await t.pump();
+      // Traversal skips the disabled lens: no ring…
+      await t.sendKeyEvent(LogicalKeyboardKey.tab);
+      await t.pump();
+      expect(
+        find.byWidgetPredicate(
+          (w) =>
+              w is Container &&
+              (w.decoration as BoxDecoration?)?.border?.top.width == 2,
+        ),
+        findsNothing,
+      );
+      // …and Enter does nothing.
+      await t.sendKeyEvent(LogicalKeyboardKey.enter);
+      await t.pump();
+      expect(taps, 0);
+      expect(t.takeException(), isNull);
+    });
+
   });
 
   group('glass home fits phones', () {

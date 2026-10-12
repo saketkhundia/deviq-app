@@ -2,8 +2,12 @@ import 'dart:ui';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/physics.dart';
+import 'package:go_router/go_router.dart';
+import 'package:simple_icons/simple_icons.dart';
 
 import '../../core/theme/design_tokens.dart';
+import 'deviq_widgets.dart';
+import '../../core/theme/deviq_colors.dart';
 
 /// Liquid-glass floating lens: deep backdrop blur + frosted smoke
 /// tint + luminous 1px border + specular top sweep with a full-bleed
@@ -120,6 +124,8 @@ class PillNavItem {
     required this.icon,
     required this.selectedIcon,
     required this.label,
+    this.avatarUrl,
+    this.avatarName,
   });
 
   final String id;
@@ -130,6 +136,13 @@ class PillNavItem {
   /// Filled glyph for the selected state.
   final IconData selectedIcon;
   final String label;
+
+  /// When set, the cell renders a user avatar (reference style)
+  /// instead of the icon glyphs.
+  final String? avatarUrl;
+  final String? avatarName;
+
+  bool get showsAvatar => avatarUrl != null || avatarName != null;
 }
 
 /// Floating capsule tab bar in Apple liquid glass, built from scratch.
@@ -184,6 +197,7 @@ class _SlidingPillNavigationState extends State<SlidingPillNavigation>
 
   @override
   void dispose() {
+    _closeProfileMenu();
     _settleCtrl.dispose();
     super.dispose();
   }
@@ -264,6 +278,53 @@ class _SlidingPillNavigationState extends State<SlidingPillNavigation>
     }
   }
 
+  OverlayEntry? _menuEntry;
+
+  /// Anchors the quick menu to the bar itself, wherever the bar lives.
+  final LayerLink _menuLink = LayerLink();
+
+  /// Long-press on the avatar: a frosted quick menu (Ask AI,
+  /// Analyze, Compare) pinned 8px above the bar's top-right end. The
+  /// follower tracks the bar itself, so the menu can never strand
+  /// off-viewport no matter where the bar is hosted.
+  void _openProfileMenu() {
+    if (_menuEntry != null || !mounted) return;
+    _menuEntry = OverlayEntry(
+      builder: (_) => Stack(
+        children: [
+          Positioned.fill(
+            child: GestureDetector(
+              behavior: HitTestBehavior.opaque,
+              onTap: _closeProfileMenu,
+              child: const SizedBox.expand(),
+            ),
+          ),
+          CompositedTransformFollower(
+            link: _menuLink,
+            showWhenUnlinked: false,
+            targetAnchor: Alignment.topRight,
+            followerAnchor: Alignment.bottomRight,
+            offset: const Offset(-8, -26),
+            child: _MenuEntrance(
+              child: _ProfileMenu(
+                onPick: (route) {
+                  _closeProfileMenu();
+                  GoRouter.of(context).push(route);
+                },
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+    Overlay.of(context).insert(_menuEntry!);
+  }
+
+  void _closeProfileMenu() {
+    _menuEntry?.remove();
+    _menuEntry = null;
+  }
+
   @override
   Widget build(BuildContext context) {
     final dark = Theme.of(context).brightness == Brightness.dark;
@@ -273,8 +334,10 @@ class _SlidingPillNavigationState extends State<SlidingPillNavigation>
     final duration = AuthTokens.motion(context, AuthTokens.navSlide);
     return SafeArea(
       top: false,
-      child: Container(
-        margin: const EdgeInsets.fromLTRB(12, 0, 12, 12),
+      child: CompositedTransformTarget(
+        link: _menuLink,
+        child: Container(
+          margin: const EdgeInsets.fromLTRB(12, 0, 12, 12),
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(30),
           boxShadow: [
@@ -433,6 +496,14 @@ class _SlidingPillNavigationState extends State<SlidingPillNavigation>
                                           widget.onSelect(widget.items[i].id);
                                         }
                                       },
+                                      // Hold the avatar for quick actions.
+                                      // Suppressed mid-scrub so a hold that
+                                      // turns into a slide never pops it.
+                                      onLongPress:
+                                          widget.items[i].id == 'profile' &&
+                                              !_dragging
+                                          ? _openProfileMenu
+                                          : null,
                                     ),
                                   ),
                               ],
@@ -447,6 +518,7 @@ class _SlidingPillNavigationState extends State<SlidingPillNavigation>
             );
           },
         ),
+      ),
       ),
     );
   }
@@ -514,6 +586,154 @@ class _TravelLens extends StatelessWidget {
   }
 }
 
+/// Soft scale-in entrance for the quick menu: grows from its
+/// bottom-right anchor over ~160ms. Instant under reduced motion.
+class _MenuEntrance extends StatelessWidget {
+  const _MenuEntrance({required this.child});
+
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    final reduceMotion = MediaQuery.disableAnimationsOf(context);
+    return TweenAnimationBuilder<double>(
+      tween: Tween(begin: reduceMotion ? 1 : 0.94, end: 1),
+      duration: reduceMotion
+          ? Duration.zero
+          : const Duration(milliseconds: 160),
+      curve: Curves.easeOutCubic,
+      builder: (context, v, c) => Opacity(
+        opacity: reduceMotion ? 1 : (0.4 + 0.6 * v),
+        child: Transform.scale(
+          scale: v,
+          alignment: Alignment.bottomRight,
+          child: c,
+        ),
+      ),
+      child: child,
+    );
+  }
+}
+
+/// Frosted quick menu for a long-press on the Profile tab: Ask AI,
+/// Analyze, Compare — and nothing else. No Settings, no History.
+class _ProfileMenu extends StatelessWidget {
+  const _ProfileMenu({required this.onPick});
+
+  final ValueChanged<String> onPick;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final dark = theme.brightness == Brightness.dark;
+    final rows = [
+      ('Ask AI', Icons.smart_toy_outlined, '/ai', DevIQColors.codeforces),
+      ('Analyze', Icons.analytics_outlined, '/analyze', DevIQColors.success),
+      ('Compare', Icons.compare_arrows_outlined, '/compare', DevIQColors.github),
+    ];
+    return SizedBox(
+      width: 208,
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(20),
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 24, sigmaY: 24),
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(20),
+              gradient: LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: dark
+                    ? [
+                        Colors.white.withValues(alpha: 0.2),
+                        Colors.white.withValues(alpha: 0.08),
+                      ]
+                    : [
+                        Colors.white.withValues(alpha: 0.9),
+                        Colors.white.withValues(alpha: 0.7),
+                      ],
+              ),
+              border: Border.all(
+                color: dark
+                    ? Colors.white.withValues(alpha: 0.28)
+                    : const Color(0xFF0A0A0A).withValues(alpha: 0.12),
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: dark ? 0.5 : 0.15),
+                  blurRadius: 24,
+                  offset: const Offset(0, 10),
+                ),
+              ],
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                for (final (label, icon, route, accent) in rows)
+                  _MenuRow(
+                    label: label,
+                    icon: icon,
+                    accent: accent,
+                    onTap: () => onPick(route),
+                  ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _MenuRow extends StatelessWidget {
+  const _MenuRow({
+    required this.label,
+    required this.icon,
+    required this.accent,
+    required this.onTap,
+  });
+
+  final String label;
+  final IconData icon;
+  final Color accent;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: onTap,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 11),
+        child: Row(
+          children: [
+            Icon(icon, size: 19, color: accent),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Text(
+                label,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  fontWeight: FontWeight.w600,
+                  fontSize: 14.5,
+                ),
+              ),
+            ),
+            Icon(
+              Icons.chevron_right,
+              size: 16,
+              color: theme.colorScheme.secondary.withValues(alpha: 0.6),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
 /// 1px light line catching the bar's top edge.
 class _NavEdgeLight extends StatelessWidget {
   const _NavEdgeLight();
@@ -541,11 +761,16 @@ class _PillCell extends StatelessWidget {
     required this.item,
     required this.selected,
     required this.onTap,
+    this.onLongPress,
   });
 
   final PillNavItem item;
   final bool selected;
   final VoidCallback onTap;
+
+  /// Hold action (used by the Profile tab for its quick menu).
+  /// Null on every other tab.
+  final VoidCallback? onLongPress;
 
   @override
   Widget build(BuildContext context) {
@@ -564,18 +789,45 @@ class _PillCell extends StatelessWidget {
       onTap: onTap,
       child: InkWell(
         onTap: onTap,
+        onLongPress: onLongPress,
         borderRadius: BorderRadius.circular(AuthTokens.radiusPill),
         child: Padding(
           padding: const EdgeInsets.symmetric(vertical: 6),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(
-                selected ? item.selectedIcon : item.icon,
-                size: 24,
-                color: fg,
-                semanticLabel: item.label,
-              ),
+              if (item.showsAvatar)
+                Container(
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    border: Border.all(
+                      color: selected
+                          ? Colors.white
+                          : Colors.white.withValues(alpha: 0.25),
+                      width: selected ? 2 : 1,
+                    ),
+                    boxShadow: selected
+                        ? [
+                            BoxShadow(
+                              color: Colors.white.withValues(alpha: 0.3),
+                              blurRadius: 8,
+                            ),
+                          ]
+                        : null,
+                  ),
+                  child: ProfileAvatar(
+                    url: item.avatarUrl,
+                    name: item.avatarName,
+                    radius: 11,
+                  ),
+                )
+              else
+                Icon(
+                  selected ? item.selectedIcon : item.icon,
+                  size: 24,
+                  color: fg,
+                  semanticLabel: item.label,
+                ),
               const SizedBox(height: 3),
               Text(
                 item.label,
@@ -648,6 +900,98 @@ class _TapScaleState extends State<_TapScale> {
   }
 }
 
+/// Hairline divider with a centered label, used between primary
+/// credentials actions and social sign-in.
+class OrDivider extends StatelessWidget {
+  const OrDivider({super.key, this.label = 'or'});
+
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final line = Expanded(
+      child: Container(height: 1, color: theme.dividerColor),
+    );
+    return Row(
+      children: [
+        line,
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 12),
+          child: Text(
+            label,
+            style: theme.textTheme.labelSmall?.copyWith(
+              color: theme.colorScheme.secondary,
+            ),
+          ),
+        ),
+        line,
+      ],
+    );
+  }
+}
+
+/// Google sign-in action: outlined lens + official multicolor "G"
+/// glyph, label-driven (no emoji). Screens wire [onPressed] to
+/// `AuthController.signInWithGoogle` and pass `loading` while the
+/// native picker/backend exchange is in flight.
+class GoogleSignInButton extends StatelessWidget {
+  const GoogleSignInButton({
+    super.key,
+    required this.onPressed,
+    this.loading = false,
+  });
+
+  final VoidCallback? onPressed;
+  final bool loading;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return SizedBox(
+      width: double.infinity,
+      height: 50,
+      child: OutlinedButton(
+        onPressed: loading ? null : onPressed,
+        style: OutlinedButton.styleFrom(
+          foregroundColor: theme.colorScheme.onSurface,
+          side: BorderSide(color: theme.dividerColor),
+          padding: const EdgeInsets.symmetric(horizontal: 18),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(AuthTokens.radiusButton),
+          ),
+        ),
+        child: loading
+            ? SizedBox(
+                width: 18,
+                height: 18,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2,
+                  color: theme.colorScheme.secondary,
+                ),
+              )
+            : const Row(
+                mainAxisSize: MainAxisSize.min,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(SimpleIcons.google, size: 18),
+                  SizedBox(width: 10),
+                  Flexible(
+                    child: Text(
+                      'Continue with Google',
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        fontWeight: FontWeight.w600,
+                        fontSize: 15,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+      ),
+    );
+  }
+}
 /// Primary auth action: light surface + dark text (dark appearance),
 /// instant press feedback, restrained loading state.
 class PrimaryActionButton extends StatelessWidget {
@@ -763,7 +1107,11 @@ class AuthTextField extends StatelessWidget {
           validator: validator,
           onFieldSubmitted: onSubmitted,
           autofillHints: autofillHints,
-          style: theme.textTheme.bodyMedium?.copyWith(height: 1.4),
+          style: theme.textTheme.bodyMedium?.copyWith(
+            height: 1.4,
+            // 16px keeps iOS from zooming on focus.
+            fontSize: DevIQControls.inputFontSize,
+          ),
           decoration: InputDecoration(
             hintText: hint,
             prefixIcon: prefixIcon == null ? null : Icon(prefixIcon, size: 18),

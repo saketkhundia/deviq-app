@@ -55,6 +55,13 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
     if (ok && mounted) context.go('/home');
   }
 
+  Future<void> _google() async {
+    final ctrl = ref.read(authProvider.notifier);
+    if (ctrl.working) return;
+    final ok = await ctrl.signInWithGoogle();
+    if (ok && mounted) context.go('/home');
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -174,6 +181,13 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
                 label: 'Create Account',
                 loading: auth.working,
                 onPressed: _submit,
+              ),
+              const SizedBox(height: 12),
+              const OrDivider(),
+              const SizedBox(height: 12),
+              GoogleSignInButton(
+                loading: auth.working,
+                onPressed: auth.working ? null : _google,
               ),
             ],
           ),

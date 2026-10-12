@@ -21,6 +21,9 @@ dependencies:
   flutter_secure_storage: ^9.2.4
   shared_preferences: ^2.5.3
 
+  # Google sign-in (native account picker + ID token for backend)
+  google_sign_in: ^6.2.1
+
   # Routing
   go_router: ^14.8.1
 

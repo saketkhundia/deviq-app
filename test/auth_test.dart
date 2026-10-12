@@ -1,4 +1,8 @@
+import 'package:deviq/core/config/app_config.dart';
+import 'package:deviq/core/errors/api_exception.dart';
+import 'package:deviq/core/networking/api_client.dart';
 import 'package:deviq/core/routing/app_router.dart';
+import 'package:deviq/core/storage/app_storage.dart';
 import 'package:deviq/data/models/auth_models.dart';
 import 'package:deviq/data/repositories/auth_repository.dart';
 import 'package:deviq/features/app/providers/app_providers.dart';
@@ -8,10 +12,20 @@ import 'package:deviq/core/theme/deviq_theme.dart';
 import 'package:deviq/features/auth/presentation/login_screen.dart';
 import 'package:deviq/features/auth/presentation/signup_screen.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 import 'package:mocktail/mocktail.dart';
 
 class _FakeAuthRepo extends Mock implements AuthRepository {}
+
+class _FakeApiClient extends Mock implements ApiClient {}
+
+class _FakeSecureStore extends Mock implements SecureStore {}
+
+class _FakeGoogleAccount extends Mock implements GoogleSignInAccount {}
+
+class _FakeGoogleAuth extends Mock implements GoogleSignInAuthentication {}
 
 const _user = AuthUser(
   id: 'uid-1',
@@ -150,6 +164,249 @@ void main() {
       await c.read(authProvider.notifier).logout();
       expect(c.read(authProvider).status, AuthStatus.unauthenticated);
       verify(() => repo.logout()).called(1);
+    });
+
+    test('logout also signs out the Google account', () async {
+      when(() => repo.logout()).thenAnswer((_) async {});
+      await c.read(authProvider.notifier).logout();
+      expect(c.read(authProvider).status, AuthStatus.unauthenticated);
+    });
+  });
+
+  group('Google sign-in flow (picker injected, no platform channels)', () {
+    late _FakeAuthRepo repo;
+    late ProviderContainer c;
+
+    setUp(() {
+      repo = _FakeAuthRepo();
+      c = ProviderContainer(
+        overrides: [authRepoProvider.overrideWithValue(repo)],
+      );
+      addTearDown(c.dispose);
+    });
+
+    test('picker abort returns false with no error', () async {
+      final ok = await c
+          .read(authProvider.notifier)
+          .googleFlow(() async => null);
+      expect(ok, isFalse);
+      expect(c.read(authProvider).status, AuthStatus.unknown);
+      expect(c.read(authProvider).error, isNull);
+      expect(c.read(authProvider).working, isFalse);
+      verifyNever(
+        () => repo.oauthGoogle(
+          email: any(named: 'email'),
+          code: any(named: 'code'),
+          redirectUri: any(named: 'redirectUri'),
+        ),
+      );
+    });
+
+    test('missing auth code fails with message, no backend call', () async {
+      final account = _FakeGoogleAccount();
+      when(() => account.email).thenReturn('gina@gmail.com');
+      when(() => account.serverAuthCode).thenReturn(null);
+      final ok = await c
+          .read(authProvider.notifier)
+          .googleFlow(() async => account);
+      expect(ok, isFalse);
+      expect(c.read(authProvider).error, contains('authorization code'));
+      expect(c.read(authProvider).working, isFalse);
+      verifyNever(
+        () => repo.oauthGoogle(
+          email: any(named: 'email'),
+          code: any(named: 'code'),
+          redirectUri: any(named: 'redirectUri'),
+        ),
+      );
+    });
+
+    test('valid auth code exchanges for a session', () async {
+      final account = _FakeGoogleAccount();
+      when(() => account.email).thenReturn('gina@gmail.com');
+      when(() => account.serverAuthCode).thenReturn('auth-code-123');
+      when(() => account.authentication).thenAnswer(
+        (_) async => _FakeGoogleAuth(),
+      );
+      when(
+        () => repo.oauthGoogle(
+          email: any(named: 'email'),
+          code: any(named: 'code'),
+          redirectUri: any(named: 'redirectUri'),
+        ),
+      ).thenAnswer((_) async => (user: _user, token: 't'));
+      final ok = await c
+          .read(authProvider.notifier)
+          .googleFlow(() async => account);
+      expect(ok, isTrue);
+      expect(c.read(authProvider).status, AuthStatus.authenticated);
+      expect(c.read(authProvider).user?.email, 'ada@example.com');
+      verify(
+        () => repo.oauthGoogle(
+          email: 'gina@gmail.com',
+          code: 'auth-code-123',
+          redirectUri: AppConfig.googleOAuthRedirectUri,
+          idToken: null,
+        ),
+      ).called(1);
+    });
+
+    test('backend failure stays signed out with message', () async {
+      final account = _FakeGoogleAccount();
+      when(() => account.email).thenReturn('gina@gmail.com');
+      when(() => account.serverAuthCode).thenReturn('auth-code-123');
+      when(() => account.authentication).thenAnswer(
+        (_) async => _FakeGoogleAuth(),
+      );
+      when(
+        () => repo.oauthGoogle(
+          email: any(named: 'email'),
+          code: any(named: 'code'),
+          redirectUri: any(named: 'redirectUri'),
+        ),
+      ).thenThrow(Exception('exchange failed'));
+      final ok = await c
+          .read(authProvider.notifier)
+          .googleFlow(() async => account);
+      expect(ok, isFalse);
+      expect(c.read(authProvider).status, AuthStatus.unknown);
+      expect(c.read(authProvider).error, isNotNull);
+      expect(c.read(authProvider).working, isFalse);
+    });
+
+    test('ApiException 10 maps to setup guidance, never raw traces', () async {
+      final err = PlatformException(
+        code: 'sign_in_failed',
+        message:
+            'com.google.android.gms.common.api.ApiException: 10: , null, null',
+      );
+      final ok = await c.read(authProvider.notifier).googleFlow(() => throw err);
+      expect(ok, isFalse);
+      final message = c.read(authProvider).error ?? '';
+      expect(message, contains('SHA-1'));
+      expect(message, contains('online.deviq.deviq'));
+      expect(message, isNot(contains('PlatformException')));
+      expect(message, isNot(contains('ApiException')));
+    });
+
+    test('generic failures map to a plain retry message', () {
+      expect(
+        AuthController.googleError(Exception('boom')),
+        'Google sign-in failed. Please try again.',
+      );
+      expect(
+        AuthController.googleError(
+          PlatformException(code: 'network_error'),
+        ),
+        contains('connection'),
+      );
+    });
+
+    test('backend ApiException messages surface verbatim', () {
+      expect(
+        AuthController.googleError(
+          const ApiException(
+            ApiErrorKind.badRequest,
+            'Google token exchange failed',
+          ),
+        ),
+        'Google token exchange failed',
+      );
+      expect(
+        AuthController.googleError(ApiException.network),
+        contains('No connection'),
+      );
+    });
+
+    test('malformed-request dialog maps to account/setup guidance', () async {
+      final err = PlatformException(
+        code: 'sign_in_failed',
+        message: '400. malformed request from embedded login',
+      );
+      final ok = await c.read(authProvider.notifier).googleFlow(() => throw err);
+      expect(ok, isFalse);
+      final message = c.read(authProvider).error ?? '';
+      expect(message, contains('rejected'));
+      expect(message, contains('Accounts'));
+      expect(message, isNot(contains('400. malformed')));
+    });
+
+    test('sanitizer keeps diagnostics, strips secrets', () {
+      const raw =
+          'sign_in_failed client_id=25241869105-abc.apps.googleusercontent.com '
+          'redirect_uri=https://www.deviq.online/auth/callback?x=1&code=SECRET '
+          'idToken=tok123 access_token=acc456 password=hunter2';
+      final clean = AuthController.sanitizeOAuthDetails(raw);
+      expect(clean, contains('25241869105-abc.apps.googleusercontent.com'));
+      expect(clean, contains('redirect_uri=https://www.deviq.online/auth/callback'));
+      for (final secret in ['tok123', 'acc456', 'SECRET', 'hunter2']) {
+        expect(clean, isNot(contains(secret)));
+      }
+    });
+
+    testWidgets('google button renders on login and signup', (t) async {
+      await _pumpAuth(t, const LoginScreen(), dark: false);
+      expect(find.text('Continue with Google'), findsOneWidget);
+      await _pumpAuth(t, const SignupScreen(), dark: false);
+      expect(find.text('Continue with Google'), findsOneWidget);
+      expect(t.takeException(), isNull);
+    });
+  });
+
+  group('AuthRepository.oauthGoogle (mocked transport)', () {
+    test('posts the code exchange and persists the session', () async {
+      final api = _FakeApiClient();
+      final secure = _FakeSecureStore();
+      when(
+        () => api.post<Map<String, dynamic>>(
+          '/auth/oauth',
+          body: any(named: 'body'),
+          decode: any(named: 'decode'),
+        ),
+      ).thenAnswer((inv) async {
+        final decode =
+            inv.namedArguments[#decode]
+                as Map<String, dynamic> Function(dynamic);
+        return decode({
+          'token': 'sess-1',
+          'user': {
+            'id': 'g-1',
+            'name': 'Gina',
+            'email': 'gina@gmail.com',
+            'avatar': '',
+            'provider': 'google',
+          },
+        });
+      });
+      when(
+        () => secure.saveSession(
+          token: any(named: 'token'),
+          email: any(named: 'email'),
+        ),
+      ).thenAnswer((_) async {});
+      final repo = AuthRepository(api, secure);
+      final r = await repo.oauthGoogle(
+        email: 'gina@gmail.com',
+        code: 'auth-code-123',
+        redirectUri: 'https://www.deviq.online/auth/callback',
+      );
+      expect(r.token, 'sess-1');
+      expect(r.user.email, 'gina@gmail.com');
+      expect(r.user.provider, 'google');
+      verify(
+        () => api.post<Map<String, dynamic>>(
+          '/auth/oauth',
+          body: {
+            'email': 'gina@gmail.com',
+            'code': 'auth-code-123',
+            'redirect_uri': 'https://www.deviq.online/auth/callback',
+          },
+          decode: any(named: 'decode'),
+        ),
+      ).called(1);
+      verify(
+        () => secure.saveSession(token: 'sess-1', email: 'gina@gmail.com'),
+      ).called(1);
     });
   });
 

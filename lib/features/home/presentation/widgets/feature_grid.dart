@@ -25,6 +25,7 @@ class FeatureEntry {
       route == '/home' ||
       route == '/analyze' ||
       route == '/review' ||
+      route == '/profile' ||
       route == '/interview' ||
       route == '/ai';
 

@@ -218,7 +218,10 @@ class _AiScreenState extends ConsumerState<AiScreen> {
                             onSubmitted: (_) {
                               if (canSend) _send();
                             },
-                            style: theme.textTheme.bodyMedium,
+                            // 16px keeps iOS from zooming on focus.
+                            style: theme.textTheme.bodyMedium?.copyWith(
+                              fontSize: DevIQControls.inputFontSize,
+                            ),
                             decoration: const InputDecoration(
                               hintText: 'Ask about your progress, weak areas, next steps…',
                             ),
@@ -561,7 +564,10 @@ class _SendButton extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final active = enabled && !sending;
-    return InkWell(
+    // Tooltip doubles as the accessible name for this icon-only action.
+    return Tooltip(
+      message: 'Send message',
+      child: InkWell(
       onTap: active ? onTap : null,
       borderRadius: BorderRadius.circular(12),
       child: Container(
@@ -590,6 +596,7 @@ class _SendButton extends StatelessWidget {
                     ? theme.scaffoldBackgroundColor
                     : theme.colorScheme.secondary,
               ),
+        ),
       ),
     );
   }

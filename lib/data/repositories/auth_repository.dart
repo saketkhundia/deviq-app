@@ -35,6 +35,30 @@ class AuthRepository {
     return _persist(json);
   }
 
+  /// Google sign-in: exchanges a server auth code (obtained natively
+  /// on device) for a DevIQ session via the backend's OAuth code
+  /// exchange. The verified ID token rides along so the backend can
+  /// fall back to direct verification; unknown fields are ignored by
+  /// FastAPI validation. Response flows through [_persist].
+  Future<({AuthUser user, String token})> oauthGoogle({
+    required String email,
+    required String code,
+    required String redirectUri,
+    String? idToken,
+  }) async {
+    final json = await _api.post<Map<String, dynamic>>(
+      '/auth/oauth',
+      body: {
+        'email': email,
+        'code': code,
+        'redirect_uri': redirectUri,
+        if (idToken != null && idToken.isNotEmpty) 'id_token': idToken,
+      },
+      decode: (d) => (d as Map).cast<String, dynamic>(),
+    );
+    return _persist(json);
+  }
+
   Future<AuthUser> me() async {
     final json = await _api.get<Map<String, dynamic>>(
       '/auth/me',

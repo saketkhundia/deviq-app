@@ -102,6 +102,34 @@ class DevIQRadius {
   static const double sheet = 16;
 }
 
+/// Central control dimensions. Every button variant derives its
+/// height here — never hardcoded per call site — so proportions stay
+/// consistent across Home, Analyze, dialogs and empty states.
+class DevIQControls {
+  const DevIQControls._();
+
+  /// Primary mobile action (Analyze Profile, Run, Review Code).
+  static const double primaryHeight = 52;
+
+  /// Secondary mobile action (ghost buttons, dialogs).
+  static const double secondaryHeight = 48;
+
+  /// Compact inline action (Copy / Download / Reset trios).
+  static const double compactHeight = 44;
+
+  /// Miniature inline lens (terminal Send). Justified only beside
+  /// text-height content it must share a baseline with.
+  static const double miniHeight = 32;
+
+  /// Form input text size. 16px minimum keeps iOS from zooming on
+  /// focus; code-editor mono surfaces are the deliberate exception.
+  static const double inputFontSize = 16;
+
+  /// Standard glyph sizes: buttons 16–18, navigation 22–24.
+  static const double buttonIcon = 18;
+  static const double navIcon = 24;
+}
+
 class DevIQSpacing {
   const DevIQSpacing._();
   static const double xs = 4;
